@@ -10,7 +10,6 @@ import retrofit2.http.Headers
 class Client {
     interface Api {
         @GET("tournaments")
-        @Headers("Token: EAAExIiMPbR4BAGa3YARwubrOGaa6ma3mbvCZBniDA1HEpObOKPqJF2nBC6mBGqttpxuw9YxflrmZATEHjKqHRZCoahRzYVjWJBiHOUitgKb0ZBax21IzlyffybeI7bW5V4yoGSOuKWiBDNtMd8pNUF9DJ2wk1h1VZBKDdChtUZCZCyp9N3gt3hf8MjDkLvZBZApZAIOMFOZAPhYKSkTi4eelV3H0UzGFPRZCdtjsK6q0WIEUAVqlVSNbo6xZC")
         fun getTournaments(): Call<List<Tournament>>
     }
 }
