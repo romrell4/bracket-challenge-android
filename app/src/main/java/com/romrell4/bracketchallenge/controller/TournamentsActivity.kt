@@ -10,14 +10,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.GsonBuilder
 import com.romrell4.bracketchallenge.R
+import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_tournaments.*
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
-private val DATE_FORMATTER = SimpleDateFormat("M/d/yy", Locale.US)
+private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
 
 class TournamentsActivity: AppCompatActivity() {
 
@@ -26,9 +37,28 @@ class TournamentsActivity: AppCompatActivity() {
         setContentView(R.layout.activity_tournaments)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = TournamentAdapter(listOf(
-                Tournament(0, "Test", null, null, "https://www.atpworldtour.com/en/scores/current/acapulco/807/draws         | https://rafaelnadalfans.files.wordpress.com/2017/03/rafa-nadal-beats-mischa-zverev-in-straight-sets-in-acapulco-2017-mexican-open-2.jpg?w=326&h=217", Calendar.getInstance().time, Calendar.getInstance().time)
-        ))
+        val adapter = TournamentAdapter(emptyList())
+        recyclerView.adapter = adapter
+
+        val api = Retrofit.Builder()
+                .baseUrl("https://3vxcifd2rc.execute-api.us-west-2.amazonaws.com/PROD/")
+                .addConverterFactory(GsonConverterFactory.create(GsonBuilder()
+                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                        .setDateFormat("yyyy-MM-dd")
+                        .create()))
+                .client(OkHttpClient.Builder().addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)).build())
+                .build()
+                .create(Client.Api::class.java)
+        api.getTournaments().enqueue(object: Callback<List<Tournament>> {
+            override fun onResponse(call: Call<List<Tournament>>?, response: Response<List<Tournament>>?) {
+                adapter.tournaments = response?.body().orEmpty()
+                adapter.notifyDataSetChanged()
+            }
+
+            override fun onFailure(call: Call<List<Tournament>>?, t: Throwable?) {
+                Toast.makeText(this@TournamentsActivity, "An error occurred", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -47,11 +77,11 @@ class TournamentsActivity: AppCompatActivity() {
         else -> super.onOptionsItemSelected(item)
     }
 
-    inner class TournamentAdapter(val tournaments: List<Tournament>): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
+    inner class TournamentAdapter(var tournaments: List<Tournament>): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
         override fun getItemCount() = tournaments.size
-        override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int) = TournamentViewHolder(layoutInflater.inflate(R.layout.row_tournament, parent, false))
-        override fun onBindViewHolder(holder: TournamentViewHolder?, position: Int) {
-            holder?.bind(tournaments[position])
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TournamentViewHolder(layoutInflater.inflate(R.layout.row_tournament, parent, false))
+        override fun onBindViewHolder(holder: TournamentViewHolder, position: Int) {
+            holder.bind(tournaments[position])
         }
 
         inner class TournamentViewHolder(view: View): RecyclerView.ViewHolder(view) {
@@ -60,7 +90,12 @@ class TournamentsActivity: AppCompatActivity() {
             val datesTextView = view.findViewById<TextView>(R.id.datesTextView)
 
             fun bind(tournament: Tournament) {
-//                Picasso.with(this@TournamentsActivity).load(tournament.imageUrl).into(imageView)
+                if (!tournament.imageUrl.isNullOrEmpty()) {
+                    Picasso.with(this@TournamentsActivity)
+                            .load(tournament.imageUrl)
+                            .placeholder(android.R.color.darker_gray)
+                            .into(imageView)
+                }
                 nameTextView.text = tournament.name
                 datesTextView.text = resources.getString(R.string.dates_format, DATE_FORMATTER.format(tournament.startDate), DATE_FORMATTER.format(tournament.endDate))
             }
