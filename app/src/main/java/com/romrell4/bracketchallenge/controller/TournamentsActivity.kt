@@ -144,9 +144,9 @@ class TournamentsActivity: AppCompatActivity() {
         }
 
         inner class TournamentViewHolder(view: View): RecyclerView.ViewHolder(view) {
-            val imageView = view.findViewById<ImageView>(R.id.imageView)
-            val nameTextView = view.findViewById<TextView>(R.id.nameTextView)
-            val datesTextView = view.findViewById<TextView>(R.id.datesTextView)
+            private val imageView = view.findViewById<ImageView>(R.id.imageView)
+            private val nameTextView = view.findViewById<TextView>(R.id.nameTextView)
+            private val datesTextView = view.findViewById<TextView>(R.id.datesTextView)
 
             fun bind(tournament: Tournament) {
                 if (!tournament.imageUrl.isNullOrEmpty()) {
