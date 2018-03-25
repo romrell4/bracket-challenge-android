@@ -154,6 +154,10 @@ class TournamentsActivity: AppCompatActivity() {
                 }
                 nameTextView.text = tournament.name
                 datesTextView.text = resources.getString(R.string.dates_format, DATE_FORMATTER.format(tournament.startDate), DATE_FORMATTER.format(tournament.endDate))
+                itemView.setOnClickListener {
+                    //TODO: Go to next activity
+//                    startActivity(Intent(this, TournamentTabActivity::class.java))
+                }
             }
         }
     }
