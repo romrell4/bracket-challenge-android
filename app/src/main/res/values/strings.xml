@@ -12,4 +12,7 @@
 	<string name="login_title">Login</string>
 	<string name="login_failed_message">Your login request has failed. Please try again.</string>
 	<string name="error_message">An error occurred. Details: %1$s</string>
+	<string name="my_bracket">My Bracket</string>
+	<string name="results">Results</string>
+	<string name="standings">Standings</string>
 </resources>
