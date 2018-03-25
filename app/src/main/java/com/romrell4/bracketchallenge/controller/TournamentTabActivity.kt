@@ -23,6 +23,7 @@ class TournamentTabActivity: AppCompatActivity() {
         navView.setOnNavigationItemSelectedListener {
             fragmentManager.beginTransaction()
                     .replace(R.id.frameLayout, when (it.itemId) {
+                        //TODO: Cache fragments so as to not create them every time?
                         R.id.my_bracket -> MyBracketFragment.newInstance()
                         R.id.results -> ResultsBracketFragment.newInstance()
                         R.id.standings -> StandingsFragment.newInstance()
