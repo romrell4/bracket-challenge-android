@@ -12,6 +12,16 @@
 		android:supportsRtl="true"
 		android:theme="@style/AppTheme">
 
+		<activity android:name=".controller.TournamentsActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+		<activity android:name=".controller.TournamentTabActivity" />
+
+		<!--Facebook Data-->
 		<meta-data
 			android:name="com.facebook.sdk.ApplicationId"
 			android:value="@string/facebook_app_id" />
@@ -28,14 +38,5 @@
 				<data android:scheme="@string/fb_login_protocol_scheme" />
 			</intent-filter>
 		</activity>
-
-		<activity android:name=".controller.TournamentsActivity">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
 	</application>
-
 </manifest>

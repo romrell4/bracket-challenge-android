@@ -31,11 +31,12 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
-private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
-private const val LOGIN_VIEW_INDEX = 0
-private const val TOURNAMENTS_VIEW_INDEX = 1
-
 class TournamentsActivity: AppCompatActivity() {
+    companion object {
+        private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
+        private const val LOGIN_VIEW_INDEX = 0
+        private const val TOURNAMENTS_VIEW_INDEX = 1
+    }
 
     private val callbackManager = CallbackManager.Factory.create()
     private val adapter = TournamentAdapter(emptyList())
@@ -158,8 +159,8 @@ class TournamentsActivity: AppCompatActivity() {
                 nameTextView.text = tournament.name
                 datesTextView.text = resources.getString(R.string.dates_format, DATE_FORMATTER.format(tournament.startDate), DATE_FORMATTER.format(tournament.endDate))
                 itemView.setOnClickListener {
-                    //TODO: Go to next activity
-//                    startActivity(Intent(this, TournamentTabActivity::class.java))
+                    startActivity(Intent(this@TournamentsActivity, TournamentTabActivity::class.java)
+                            .putExtra(TournamentTabActivity.TOURNAMENT_EXTRA, tournament))
                 }
             }
         }
