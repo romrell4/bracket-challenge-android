@@ -10,4 +10,5 @@
 	
 	<string name="dates_format">%1$s - %2$s</string>
 	<string name="login_title">Login</string>
+	<string name="login_failed_message">Your login request has failed. Please try again.</string>
 </resources>

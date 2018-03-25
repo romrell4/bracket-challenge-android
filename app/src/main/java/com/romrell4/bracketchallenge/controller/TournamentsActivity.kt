@@ -18,20 +18,14 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.google.gson.FieldNamingPolicy
-import com.google.gson.GsonBuilder
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_tournaments.*
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -50,6 +44,11 @@ class TournamentsActivity: AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+
+        //Allow the user to pull down on the recycler view to refresh the tournaments
+        swipeRefreshLayout.setOnRefreshListener {
+            loadData()
+        }
     }
 
     override fun onStart() {
@@ -94,13 +93,11 @@ class TournamentsActivity: AppCompatActivity() {
                 }
 
                 override fun onCancel() {
-                    //TODO: What to do?
-                    println("cancel")
+                    Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onError(error: FacebookException?) {
-                    //TODO: What to do?
-                    // println("error")
+                    Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
                 }
 
             })
@@ -114,25 +111,18 @@ class TournamentsActivity: AppCompatActivity() {
     }
 
     private fun loadData() {
-        //TODO: Move this into a super client class?
-        val api = Retrofit.Builder()
-                .baseUrl("https://3vxcifd2rc.execute-api.us-west-2.amazonaws.com/PROD/")
-                .addConverterFactory(GsonConverterFactory.create(GsonBuilder()
-                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                        .setDateFormat("yyyy-MM-dd")
-                        .create()))
-                .client(OkHttpClient.Builder().addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)).build())
-                .build()
-                .create(Client.Api::class.java)
-        api.getTournaments(AccessToken.getCurrentAccessToken().token).enqueue(object: Callback<List<Tournament>> {
+        swipeRefreshLayout.isRefreshing = true
+
+        //Make the HTTP call to load tournaments (using the access token as a header)
+        Client.createApi().getTournaments().enqueue(object: Callback<List<Tournament>> {
             override fun onResponse(call: Call<List<Tournament>>?, response: Response<List<Tournament>>?) {
                 adapter.tournaments = response?.body().orEmpty()
                 adapter.notifyDataSetChanged()
+                swipeRefreshLayout.isRefreshing = false
             }
 
             override fun onFailure(call: Call<List<Tournament>>?, t: Throwable?) {
-                //TODO: Check error message
-                Toast.makeText(this@TournamentsActivity, "An error occurred", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@TournamentsActivity, "An error occurred. Details: ${t?.message}", Toast.LENGTH_LONG).show()
             }
         })
     }
