@@ -21,10 +21,11 @@ import com.facebook.login.LoginResult
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
+import com.romrell4.bracketchallenge.model.User
+import com.romrell4.bracketchallenge.support.Identity
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_tournaments.*
 import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,8 +36,10 @@ private const val TOURNAMENTS_VIEW_INDEX = 1
 
 class TournamentsActivity: AppCompatActivity() {
 
-    private var callbackManager: CallbackManager? = null
-    private var adapter = TournamentAdapter(emptyList())
+    private val callbackManager = CallbackManager.Factory.create()
+    private val adapter = TournamentAdapter(emptyList())
+    private val loggedIn get() = AccessToken.getCurrentAccessToken() != null && Identity.load(this) != null
+    private val api = Client.createApi()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +61,9 @@ class TournamentsActivity: AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_tournaments, menu)
-        //TODO: Make the menu change when logged out
+        if (loggedIn) {
+            menuInflater.inflate(R.menu.menu_tournaments, menu)
+        }
         return true
     }
 
@@ -82,24 +86,29 @@ class TournamentsActivity: AppCompatActivity() {
     }
 
     private fun checkLoginStatus() {
-        if (AccessToken.getCurrentAccessToken() == null) {
-            println(AccessToken.getCurrentAccessToken())
+        if (!loggedIn) {
             viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
             loginButton.setReadPermissions("email")
-            callbackManager = CallbackManager.Factory.create()
             loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
                 override fun onSuccess(result: LoginResult?) {
-                    checkLoginStatus()
+                    println(AccessToken.getCurrentAccessToken())
+
+                    //TODO: Add progress dialog?
+                    api.login().enqueue(object: Client.SuccessCallback<User>(this@TournamentsActivity) {
+                        override fun onResponse(call: Call<User>?, response: Response<User>?) {
+                            val user = response?.body()
+                            if (user != null) {
+                                Identity.saveUser(this@TournamentsActivity, user)
+                                checkLoginStatus()
+                            } else {
+                                onFailure(call, Throwable("Unable to parse User from response"))
+                            }
+                        }
+                    })
                 }
 
-                override fun onCancel() {
-                    Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
-                }
-
-                override fun onError(error: FacebookException?) {
-                    Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
-                }
-
+                override fun onCancel() = Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
+                override fun onError(error: FacebookException?) = Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
             })
         } else {
             viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
@@ -114,15 +123,11 @@ class TournamentsActivity: AppCompatActivity() {
         swipeRefreshLayout.isRefreshing = true
 
         //Make the HTTP call to load tournaments (using the access token as a header)
-        Client.createApi().getTournaments().enqueue(object: Callback<List<Tournament>> {
+        api.getTournaments().enqueue(object: Client.SuccessCallback<List<Tournament>>(this) {
             override fun onResponse(call: Call<List<Tournament>>?, response: Response<List<Tournament>>?) {
                 adapter.tournaments = response?.body().orEmpty()
                 adapter.notifyDataSetChanged()
                 swipeRefreshLayout.isRefreshing = false
-            }
-
-            override fun onFailure(call: Call<List<Tournament>>?, t: Throwable?) {
-                Toast.makeText(this@TournamentsActivity, "An error occurred. Details: ${t?.message}", Toast.LENGTH_LONG).show()
             }
         })
     }
