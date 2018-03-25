@@ -1,5 +1,6 @@
 package com.romrell4.bracketchallenge.controller
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -11,6 +12,12 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import com.facebook.AccessToken
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import com.romrell4.bracketchallenge.R
@@ -29,17 +36,85 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
+private const val LOGIN_VIEW_INDEX = 0
+private const val TOURNAMENTS_VIEW_INDEX = 1
 
 class TournamentsActivity: AppCompatActivity() {
+
+    private var callbackManager: CallbackManager? = null
+    private var adapter = TournamentAdapter(emptyList())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tournaments)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        val adapter = TournamentAdapter(emptyList())
         recyclerView.adapter = adapter
+    }
 
+    override fun onStart() {
+        super.onStart()
+
+        checkLoginStatus()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_tournaments, menu)
+        //TODO: Make the menu change when logged out
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
+        R.id.logout -> {
+            LoginManager.getInstance().logOut()
+            checkLoginStatus()
+            true
+        }
+        R.id.addTournament -> {
+            //TODO: Add logic for add a tournament
+            false
+        }
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        callbackManager?.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun checkLoginStatus() {
+        if (AccessToken.getCurrentAccessToken() == null) {
+            println(AccessToken.getCurrentAccessToken())
+            viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
+            loginButton.setReadPermissions("email")
+            callbackManager = CallbackManager.Factory.create()
+            loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
+                override fun onSuccess(result: LoginResult?) {
+                    checkLoginStatus()
+                }
+
+                override fun onCancel() {
+                    //TODO: What to do?
+                    println("cancel")
+                }
+
+                override fun onError(error: FacebookException?) {
+                    //TODO: What to do?
+                    // println("error")
+                }
+
+            })
+        } else {
+            viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
+            loadData()
+        }
+
+        //This will reload what the options menu has in it
+        invalidateOptionsMenu()
+    }
+
+    private fun loadData() {
+        //TODO: Move this into a super client class?
         val api = Retrofit.Builder()
                 .baseUrl("https://3vxcifd2rc.execute-api.us-west-2.amazonaws.com/PROD/")
                 .addConverterFactory(GsonConverterFactory.create(GsonBuilder()
@@ -49,35 +124,21 @@ class TournamentsActivity: AppCompatActivity() {
                 .client(OkHttpClient.Builder().addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)).build())
                 .build()
                 .create(Client.Api::class.java)
-        api.getTournaments().enqueue(object: Callback<List<Tournament>> {
+        api.getTournaments(AccessToken.getCurrentAccessToken().token).enqueue(object: Callback<List<Tournament>> {
             override fun onResponse(call: Call<List<Tournament>>?, response: Response<List<Tournament>>?) {
                 adapter.tournaments = response?.body().orEmpty()
                 adapter.notifyDataSetChanged()
             }
 
             override fun onFailure(call: Call<List<Tournament>>?, t: Throwable?) {
+                //TODO: Check error message
                 Toast.makeText(this@TournamentsActivity, "An error occurred", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_tournaments, menu)
-//        menu?.findItem(R.id.addTournament)?.isVisible =
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
-        R.id.logout -> {
-            true
-        }
-        R.id.addTournament -> {
-            false
-        }
-        else -> super.onOptionsItemSelected(item)
-    }
-
     inner class TournamentAdapter(var tournaments: List<Tournament>): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
+
         override fun getItemCount() = tournaments.size
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TournamentViewHolder(layoutInflater.inflate(R.layout.row_tournament, parent, false))
         override fun onBindViewHolder(holder: TournamentViewHolder, position: Int) {
