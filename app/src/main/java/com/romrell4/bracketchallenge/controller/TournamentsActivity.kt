@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -23,6 +22,8 @@ import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
 import com.romrell4.bracketchallenge.model.User
 import com.romrell4.bracketchallenge.support.Identity
+import com.romrell4.bracketchallenge.support.showLoadingDialog
+import com.romrell4.bracketchallenge.support.showToast
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_tournaments.*
 import retrofit2.Call
@@ -91,11 +92,13 @@ class TournamentsActivity: AppCompatActivity() {
             loginButton.setReadPermissions("email")
             loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
                 override fun onSuccess(result: LoginResult?) {
-                    println(AccessToken.getCurrentAccessToken())
+                    println("Access token: ${AccessToken.getCurrentAccessToken()}")
 
-                    //TODO: Add progress dialog?
+                    val alert = showLoadingDialog()
                     api.login().enqueue(object: Client.SuccessCallback<User>(this@TournamentsActivity) {
                         override fun onResponse(call: Call<User>?, response: Response<User>?) {
+                            alert.dismiss()
+
                             val user = response?.body()
                             if (user != null) {
                                 Identity.saveUser(this@TournamentsActivity, user)
@@ -107,8 +110,8 @@ class TournamentsActivity: AppCompatActivity() {
                     })
                 }
 
-                override fun onCancel() = Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
-                override fun onError(error: FacebookException?) = Toast.makeText(this@TournamentsActivity, R.string.login_failed_message, Toast.LENGTH_SHORT).show()
+                override fun onCancel() = showToast(R.string.login_failed_message)
+                override fun onError(error: FacebookException?) = showToast(R.string.login_failed_message)
             })
         } else {
             viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
