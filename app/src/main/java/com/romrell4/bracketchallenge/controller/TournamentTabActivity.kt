@@ -15,18 +15,18 @@ class TournamentTabActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tournament_tab)
 
-        fragmentManager.beginTransaction().replace(R.id.frameLayout, MyBracketFragment.newInstance()).commit()
 
         val tournament = intent.getParcelableExtra<Tournament>(TOURNAMENT_EXTRA)
+        fragmentManager.beginTransaction().replace(R.id.frameLayout, MyBracketFragment.newInstance(tournament)).commit()
         println(tournament)
 
+        //TODO: Figure out a way to save the fragments (show/hide?) https://github.com/roughike/BottomBar/issues/385
         navView.setOnNavigationItemSelectedListener {
             fragmentManager.beginTransaction()
                     .replace(R.id.frameLayout, when (it.itemId) {
-                        //TODO: Cache fragments so as to not create them every time?
-                        R.id.my_bracket -> MyBracketFragment.newInstance()
-                        R.id.results -> ResultsBracketFragment.newInstance()
-                        R.id.standings -> StandingsFragment.newInstance()
+                        R.id.my_bracket -> MyBracketFragment.newInstance(tournament)
+                        R.id.results -> ResultsBracketFragment.newInstance(tournament)
+                        R.id.standings -> StandingsFragment.newInstance(tournament)
                         else -> null
                     })
                     .commit()

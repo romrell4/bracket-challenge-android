@@ -26,7 +26,6 @@ import com.romrell4.bracketchallenge.support.showLoadingDialog
 import com.romrell4.bracketchallenge.support.showToast
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_tournaments.*
-import retrofit2.Call
 import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
@@ -89,6 +88,9 @@ class TournamentsActivity: AppCompatActivity() {
 
     private fun checkLoginStatus() {
         if (!loggedIn) {
+            //Clear the adapter
+            adapter.tournaments = emptyList()
+            
             viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
             loginButton.setReadPermissions("email")
             loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
@@ -96,16 +98,12 @@ class TournamentsActivity: AppCompatActivity() {
                     println("Access token: ${AccessToken.getCurrentAccessToken()}")
 
                     val alert = showLoadingDialog()
-                    api.login().enqueue(object: Client.SuccessCallback<User>(this@TournamentsActivity) {
-                        override fun onResponse(call: Call<User>?, response: Response<User>?) {
+                    api.login().enqueue(object: Client.SimpleCallback<User>(this@TournamentsActivity) {
+                        override fun onResponse(data: User?, errorResponse: Response<User>?) {
                             alert.dismiss()
-
-                            val user = response?.body()
-                            if (user != null) {
-                                Identity.saveUser(this@TournamentsActivity, user)
+                            data?.let {
+                                Identity.saveUser(this@TournamentsActivity, it)
                                 checkLoginStatus()
-                            } else {
-                                onFailure(call, Throwable("Unable to parse User from response"))
                             }
                         }
                     })
@@ -114,7 +112,7 @@ class TournamentsActivity: AppCompatActivity() {
                 override fun onCancel() = showToast(R.string.login_failed_message)
                 override fun onError(error: FacebookException?) = showToast(R.string.login_failed_message)
             })
-        } else {
+        } else if (adapter.tournaments.isEmpty()) { //Only reload the data if we haven't loaded already
             viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
             loadData()
         }
@@ -127,11 +125,13 @@ class TournamentsActivity: AppCompatActivity() {
         swipeRefreshLayout.isRefreshing = true
 
         //Make the HTTP call to load tournaments (using the access token as a header)
-        api.getTournaments().enqueue(object: Client.SuccessCallback<List<Tournament>>(this) {
-            override fun onResponse(call: Call<List<Tournament>>?, response: Response<List<Tournament>>?) {
-                adapter.tournaments = response?.body().orEmpty()
-                adapter.notifyDataSetChanged()
+        api.getTournaments().enqueue(object: Client.SimpleCallback<List<Tournament>>(this) {
+            override fun onResponse(data: List<Tournament>?, errorResponse: Response<List<Tournament>>?) {
                 swipeRefreshLayout.isRefreshing = false
+                data?.let {
+                    adapter.tournaments = it
+                    adapter.notifyDataSetChanged()
+                }
             }
         })
     }

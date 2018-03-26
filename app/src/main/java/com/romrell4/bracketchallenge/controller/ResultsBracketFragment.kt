@@ -6,16 +6,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.romrell4.bracketchallenge.R
+import com.romrell4.bracketchallenge.model.Tournament
 
 /**
  * Created by romrell4 on 3/25/18
  */
 class ResultsBracketFragment: Fragment() {
     companion object {
-        fun newInstance(): ResultsBracketFragment {
+        private const val TOURNAMENT_EXTRA = "tournament"
+
+        fun newInstance(tournament: Tournament): ResultsBracketFragment {
             val fragment = ResultsBracketFragment()
-            //TODO: Put together bundle
-            fragment.arguments = Bundle()
+            val bundle = Bundle()
+            bundle.putParcelable(TOURNAMENT_EXTRA, tournament)
+            fragment.arguments = bundle
+
             return fragment
         }
     }

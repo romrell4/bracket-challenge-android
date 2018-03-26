@@ -14,10 +14,12 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import java.io.IOException
 
 /**
@@ -50,9 +52,24 @@ class Client {
 
         @GET("tournaments")
         fun getTournaments(): Call<List<Tournament>>
+
+        @GET("tournaments/{tournamentId}/brackets")
+        fun getBrackets(@Path("tournamentId") tournamentId: Int): Call<List<Bracket>>
     }
 
-    abstract class SuccessCallback<T>(private val context: Context): Callback<T> {
+    abstract class SimpleCallback<T>(private val context: Context): Callback<T> {
+        abstract fun onResponse(data: T?, errorResponse: Response<T>? = null)
+
+        override fun onResponse(call: Call<T>?, response: Response<T>?) {
+            val data = response?.body()
+            if (response?.isSuccessful == true && data != null) {
+                onResponse(data)
+            } else {
+                onFailure(call, Throwable(response?.errorBody()?.string()))
+                onResponse(null, errorResponse = response)
+            }
+        }
+
         override fun onFailure(call: Call<T>?, t: Throwable?) {
             Toast.makeText(context, context.getString(R.string.error_message, t?.message), Toast.LENGTH_LONG).show()
         }

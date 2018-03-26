@@ -4,19 +4,19 @@
 	<!--TODO: Change drawables-->
 	<item
 		android:id="@+id/my_bracket"
-		android:icon="@drawable/ic_add_black_24dp"
+		android:icon="@drawable/ic_bracket"
 		android:title="@string/my_bracket"
 		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/results"
-		android:icon="@drawable/ic_add_black_24dp"
+		android:icon="@drawable/ic_results"
 		android:title="@string/results"
 		app:showAsAction="ifRoom" />
 
 	<item
 		android:id="@+id/standings"
-		android:icon="@drawable/ic_add_black_24dp"
+		android:icon="@drawable/ic_standings"
 		android:title="@string/standings"
 		app:showAsAction="ifRoom" />
 </menu>
