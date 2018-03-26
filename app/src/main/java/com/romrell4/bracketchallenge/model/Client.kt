@@ -10,6 +10,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.romrell4.bracketchallenge.R
+import com.romrell4.bracketchallenge.support.showToast
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -71,7 +72,7 @@ class Client {
         }
 
         override fun onFailure(call: Call<T>?, t: Throwable?) {
-            Toast.makeText(context, context.getString(R.string.error_message, t?.message), Toast.LENGTH_LONG).show()
+            context.showToast(context.getString(R.string.error_message, t?.message), Toast.LENGTH_LONG)
         }
     }
 
