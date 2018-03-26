@@ -38,7 +38,7 @@ class TournamentsActivity: AppCompatActivity() {
     }
 
     private val callbackManager = CallbackManager.Factory.create()
-    private val adapter = TournamentAdapter(emptyList())
+    private val adapter = TournamentAdapter()
     private val loggedIn get() = AccessToken.getCurrentAccessToken() != null && Identity.load(this) != null
     private val api = Client.createApi()
 
@@ -90,7 +90,7 @@ class TournamentsActivity: AppCompatActivity() {
         if (!loggedIn) {
             //Clear the adapter
             adapter.tournaments = emptyList()
-            
+
             viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
             loginButton.setReadPermissions("email")
             loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
@@ -136,7 +136,7 @@ class TournamentsActivity: AppCompatActivity() {
         })
     }
 
-    inner class TournamentAdapter(var tournaments: List<Tournament>): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
+    inner class TournamentAdapter(var tournaments: List<Tournament> = emptyList()): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
 
         override fun getItemCount() = tournaments.size
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TournamentViewHolder(layoutInflater.inflate(R.layout.row_tournament, parent, false))

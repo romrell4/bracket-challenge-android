@@ -31,7 +31,7 @@ class StandingsFragment: Fragment() {
         }
     }
 
-    private val adapter = BracketAdapter(emptyList())
+    private val adapter = BracketAdapter()
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater?.inflate(R.layout.fragment_standings, container, false)
@@ -58,7 +58,7 @@ class StandingsFragment: Fragment() {
         return view
     }
 
-    inner class BracketAdapter(var brackets: List<Bracket>): RecyclerView.Adapter<BracketAdapter.ViewHolder>() {
+    inner class BracketAdapter(var brackets: List<Bracket> = emptyList()): RecyclerView.Adapter<BracketAdapter.ViewHolder>() {
         override fun getItemCount() = brackets.size
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_user_score, parent, false))
         override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(brackets[position])

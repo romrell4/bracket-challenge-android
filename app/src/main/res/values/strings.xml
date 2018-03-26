@@ -15,4 +15,5 @@
 	<string name="my_bracket">My Bracket</string>
 	<string name="results">Results</string>
 	<string name="standings">Standings</string>
+	<string name="checkmark_content_description">Checkmark</string>
 </resources>
