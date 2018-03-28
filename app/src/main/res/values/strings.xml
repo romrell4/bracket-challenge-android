@@ -16,4 +16,6 @@
 	<string name="results">Results</string>
 	<string name="standings">Standings</string>
 	<string name="checkmark_content_description">Checkmark</string>
+	<string name="create_bracket_prompt">It looks like you haven\'t created a bracket for this tournament. Tap below to begin!</string>
+	<string name="create_bracket_button_text">Create Bracket</string>
 </resources>

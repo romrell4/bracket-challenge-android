@@ -9,5 +9,5 @@ data class Bracket(
         var tournamentId: Int,
         var name: String,
         var score: Int,
-        var rounds: List<List<MatchHelper>>?
+        @JvmSuppressWildcards var rounds: List<List<Match>>?
 )

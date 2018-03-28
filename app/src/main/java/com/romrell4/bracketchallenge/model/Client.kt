@@ -56,6 +56,12 @@ class Client {
 
         @GET("tournaments/{tournamentId}/brackets")
         fun getBrackets(@Path("tournamentId") tournamentId: Int): Call<List<Bracket>>
+
+        @POST("tournaments/{tournamentId}/brackets")
+        fun createBracket(@Path("tournamentId") tournamentId: Int): Call<Bracket>
+
+        @GET("tournaments/{tournamentId}/brackets/mine")
+        fun getMyBracket(@Path("tournamentId") tournamentId: Int): Call<Bracket>
     }
 
     abstract class SimpleCallback<T>(private val context: Context): Callback<T> {
