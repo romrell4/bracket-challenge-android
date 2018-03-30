@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.row_match.view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.math.pow
 
 /**
  * Created by romrell4 on 3/25/18
@@ -109,9 +110,9 @@ class MyBracketFragment: Fragment() {
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
-            (roundView as? RecyclerView?)?.let {
-                it.layoutManager = LinearLayoutManager(activity)
-                it.adapter = MatchAdapter(position, rounds[position])
+            (roundView as? RecyclerView?)?.run {
+                layoutManager = LinearLayoutManager(activity)
+                adapter = MatchAdapter(position, rounds[position])
             }
             container.addView(roundView)
             return roundView
@@ -130,6 +131,14 @@ class MyBracketFragment: Fragment() {
             private val checkmark2 = view.checkmark2
 
             fun bind(match: Match) {
+                (itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.run {
+                    val cardHeight = activity.resources.getDimension(R.dimen.match_card_height)
+                    val cardMargin = activity.resources.getDimension(R.dimen.match_card_margin)
+                    val newMargin = ((cardHeight / 2 + cardMargin) * (2.0.pow(round) - 1) + cardMargin).toInt()
+                    topMargin = newMargin
+                    bottomMargin = newMargin
+                    itemView.requestLayout()
+                }
                 nameTextView1.text = match.player1Full()
                 checkmark1.visibility = if (match.player1Id != null && match.player1Id == match.winnerId) View.VISIBLE else View.GONE
                 nameTextView2.text = match.player2Full()
