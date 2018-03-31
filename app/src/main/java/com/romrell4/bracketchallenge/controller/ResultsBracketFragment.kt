@@ -1,33 +1,40 @@
 package com.romrell4.bracketchallenge.controller
 
-import android.app.Fragment
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import com.romrell4.bracketchallenge.R
+import com.romrell4.bracketchallenge.model.Bracket
+import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
+import retrofit2.Response
 
 /**
  * Created by romrell4 on 3/25/18
  */
-class ResultsBracketFragment: Fragment() {
+class ResultsBracketFragment: BracketFragment() {
     companion object {
-        private const val TOURNAMENT_EXTRA = "tournament"
-
         fun newInstance(tournament: Tournament): ResultsBracketFragment {
             val fragment = ResultsBracketFragment()
-            val bundle = Bundle()
-            bundle.putParcelable(TOURNAMENT_EXTRA, tournament)
-            fragment.arguments = bundle
-
+            fragment.setArguments(tournament)
             return fragment
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater?.inflate(R.layout.fragment_results_bracket, container, false)
-        //TODO: Actually set up view
-        return view
+    //Abstract properties
+    override val areCellClickable = false
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        loadBracket()
+    }
+
+    private fun loadBracket() {
+        tournament.masterBracketId?.let {
+            Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+                override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
+                    bracket = data
+                }
+            })
+        }
     }
 }
