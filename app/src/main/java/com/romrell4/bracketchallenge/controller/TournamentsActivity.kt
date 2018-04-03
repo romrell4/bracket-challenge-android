@@ -75,7 +75,7 @@ class TournamentsActivity: AppCompatActivity() {
             true
         }
         R.id.addTournament -> {
-            //TODO: Add logic for add a tournament
+            //TODO: Add logic to add a tournament (also, make this option disappear if they're not an admin)
             false
         }
         else -> super.onOptionsItemSelected(item)
