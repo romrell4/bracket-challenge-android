@@ -41,6 +41,7 @@ abstract class BracketFragment: Fragment() {
 
     //Overridable functions
     protected abstract val areCellsClickable: Boolean
+
     open protected fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity, R.color.black)
 
     //Setup functions
@@ -72,21 +73,37 @@ abstract class BracketFragment: Fragment() {
             viewSwitcher.displayedChild = VIEW_BRACKET_INDEX
             matchesViewSwitcher.displayedChild = VIEW_BRACKET_ROUNDS_INDEX
 
+            //Tell the view pager to keep all pages in memory (so that we can scroll between them)
+            bracket?.rounds?.let { viewPager.offscreenPageLimit = it.size - 1 }
             viewPager.adapter = RoundPagerAdapter(bracket, masterBracket)
         }
     }
 
     inner class RoundPagerAdapter(private val bracket: Bracket?, private val masterBracket: Bracket?): PagerAdapter() {
+        private var recyclerViews = arrayOfNulls<RecyclerView>(count)
+        private var scrollListeners = arrayOfNulls<RecyclerView.OnScrollListener>(count)
+
         override fun getCount() = bracket?.rounds?.size ?: 0
         override fun isViewFromObject(view: View, `object`: Any) = view == `object`
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) = container.removeView(`object` as? View)
 
         override fun instantiateItem(container: ViewGroup, position: Int): Any {
             val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
-            (roundView as? RecyclerView?)?.run {
+            (roundView as? RecyclerView?)?.apply {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = MatchAdapter(position, bracket?.rounds?.get(position) ?: emptyList(), masterBracket?.rounds?.get(position) ?: emptyList())
-                //TODO: Add scrolling to other pager views
+
+                recyclerViews[position] = this
+                scrollListeners[position] = object: RecyclerView.OnScrollListener() {
+                    override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+                        super.onScrolled(recyclerView, dx, dy)
+                        recyclerViews.zip(scrollListeners)
+                                .filter { it.first != recyclerView }
+                                .map { it.first?.removeOnScrollListener(it.second); it }
+                                .map { it.first?.scrollBy(dx, dy); it }
+                                .forEach { it.first?.addOnScrollListener(it.second) }
+                    }
+                }.also { addOnScrollListener(it) }
             }
             container.addView(roundView)
             return roundView
