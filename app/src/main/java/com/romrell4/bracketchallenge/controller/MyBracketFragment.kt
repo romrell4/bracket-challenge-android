@@ -1,6 +1,7 @@
 package com.romrell4.bracketchallenge.controller
 
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.view.View
 import android.widget.Toast
 import com.romrell4.bracketchallenge.R
@@ -29,12 +30,24 @@ class MyBracketFragment: BracketFragment() {
     }
 
     //Abstract properties
-    override val areCellClickable = true
+    override val areCellsClickable = true
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         loadBracket()
     }
+
+    override fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity,
+            if (playerId == null || winnerId == null || predictionId == null) {
+                //The match isn't finished, or the user hasn't selected a winner yet
+                R.color.black
+            } else if (predictionId == playerId) {
+                //We predicted this player. If they won, green. If they lost, red.
+                if (winnerId == playerId) R.color.winner_green else R.color.red
+            } else {
+                //We didn't predict this player. If they won, black. If they lost, gray
+                if (winnerId == playerId) R.color.black else R.color.light_gray
+            })
 
     private fun loadBracket() {
         Client.createApi().getMyBracket(tournament.tournamentId).enqueue(object: Callback<Bracket> {
