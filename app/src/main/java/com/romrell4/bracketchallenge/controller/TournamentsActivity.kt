@@ -64,6 +64,7 @@ class TournamentsActivity: AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         if (loggedIn) {
             menuInflater.inflate(R.menu.menu_tournaments, menu)
+            menu?.findItem(R.id.addTournament)?.isVisible = Identity.user.admin
         }
         return true
     }
@@ -75,7 +76,7 @@ class TournamentsActivity: AppCompatActivity() {
             true
         }
         R.id.addTournament -> {
-            //TODO: Add logic to add a tournament (also, make this option disappear if they're not an admin)
+            //TODO: Add logic to add a tournament
             false
         }
         else -> super.onOptionsItemSelected(item)
