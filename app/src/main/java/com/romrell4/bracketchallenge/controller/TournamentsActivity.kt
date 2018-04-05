@@ -76,8 +76,8 @@ class TournamentsActivity: AppCompatActivity() {
             true
         }
         R.id.addTournament -> {
-            //TODO: Add logic to add a tournament
-            false
+            AddTournamentDialog(this).show()
+            true
         }
         else -> super.onOptionsItemSelected(item)
     }
