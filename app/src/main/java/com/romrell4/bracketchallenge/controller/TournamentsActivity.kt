@@ -31,139 +31,139 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class TournamentsActivity: AppCompatActivity() {
-    companion object {
-        private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
-        private const val LOGIN_VIEW_INDEX = 0
-        private const val TOURNAMENTS_VIEW_INDEX = 1
-    }
+	companion object {
+		private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
+		private const val LOGIN_VIEW_INDEX = 0
+		private const val TOURNAMENTS_VIEW_INDEX = 1
+	}
 
-    private val callbackManager = CallbackManager.Factory.create()
-    private val adapter = TournamentAdapter()
-    private val loggedIn get() = AccessToken.getCurrentAccessToken() != null && Identity.load(this) != null
-    private val api = Client.createApi()
+	private val callbackManager = CallbackManager.Factory.create()
+	private val adapter = TournamentAdapter()
+	private val loggedIn get() = AccessToken.getCurrentAccessToken() != null && Identity.load(this) != null
+	private val api = Client.createApi()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_tournaments)
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContentView(R.layout.activity_tournaments)
 
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+		recyclerView.layoutManager = LinearLayoutManager(this)
+		recyclerView.adapter = adapter
 
-        //Allow the user to pull down on the recycler view to refresh the tournaments
-        swipeRefreshLayout.setOnRefreshListener {
-            loadData()
-        }
-    }
+		//Allow the user to pull down on the recycler view to refresh the tournaments
+		swipeRefreshLayout.setOnRefreshListener {
+			loadData()
+		}
+	}
 
-    override fun onStart() {
-        super.onStart()
+	override fun onStart() {
+		super.onStart()
 
-        checkLoginStatus()
-    }
+		checkLoginStatus()
+	}
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        if (loggedIn) {
-            menuInflater.inflate(R.menu.menu_tournaments, menu)
-            menu?.findItem(R.id.addTournament)?.isVisible = Identity.user.admin
-        }
-        return true
-    }
+	override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+		if (loggedIn) {
+			menuInflater.inflate(R.menu.menu_tournaments, menu)
+			menu?.findItem(R.id.addTournament)?.isVisible = Identity.user.admin
+		}
+		return true
+	}
 
-    override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
-        R.id.logout -> {
-            LoginManager.getInstance().logOut()
-            checkLoginStatus()
-            true
-        }
-        R.id.addTournament -> {
-            AddTournamentDialog(this).show()
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
-    }
+	override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
+		R.id.logout -> {
+			LoginManager.getInstance().logOut()
+			checkLoginStatus()
+			true
+		}
+		R.id.addTournament -> {
+			AddTournamentDialog(this).show()
+			true
+		}
+		else -> super.onOptionsItemSelected(item)
+	}
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        callbackManager?.onActivityResult(requestCode, resultCode, data)
-    }
+	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+		super.onActivityResult(requestCode, resultCode, data)
+		callbackManager?.onActivityResult(requestCode, resultCode, data)
+	}
 
-    private fun checkLoginStatus() {
-        if (!loggedIn) {
-            //Clear the adapter
-            adapter.tournaments = emptyList()
+	private fun checkLoginStatus() {
+		if (!loggedIn) {
+			//Clear the adapter
+			adapter.tournaments = emptyList()
 
-            viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
-            loginButton.setReadPermissions("email")
-            loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
-                override fun onSuccess(result: LoginResult?) {
-                    println("Access token: ${AccessToken.getCurrentAccessToken()}")
+			viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
+			loginButton.setReadPermissions("email")
+			loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
+				override fun onSuccess(result: LoginResult?) {
+					println("Access token: ${AccessToken.getCurrentAccessToken()}")
 
-                    val alert = showLoadingDialog()
-                    api.login().enqueue(object: Client.SimpleCallback<User>(this@TournamentsActivity) {
-                        override fun onResponse(data: User?, errorResponse: Response<User>?) {
-                            alert.dismiss()
-                            data?.let {
-                                Identity.saveUser(this@TournamentsActivity, it)
-                                checkLoginStatus()
-                            }
-                        }
-                    })
-                }
+					val alert = showLoadingDialog()
+					api.login().enqueue(object: Client.SimpleCallback<User>(this@TournamentsActivity) {
+						override fun onResponse(data: User?, errorResponse: Response<User>?) {
+							alert.dismiss()
+							data?.let {
+								Identity.saveUser(this@TournamentsActivity, it)
+								checkLoginStatus()
+							}
+						}
+					})
+				}
 
-                override fun onCancel() = showToast(R.string.login_failed_message)
-                override fun onError(error: FacebookException?) = showToast(R.string.login_failed_message)
-            })
-        } else if (adapter.tournaments.isEmpty()) { //Only reload the data if we haven't loaded already
-            viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
-            loadData()
-        }
+				override fun onCancel() = showToast(R.string.login_failed_message)
+				override fun onError(error: FacebookException?) = showToast(R.string.login_failed_message)
+			})
+		} else if (adapter.tournaments.isEmpty()) { //Only reload the data if we haven't loaded already
+			viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
+			loadData()
+		}
 
-        //This will reload what the options menu has in it
-        invalidateOptionsMenu()
-    }
+		//This will reload what the options menu has in it
+		invalidateOptionsMenu()
+	}
 
-    private fun loadData() {
-        swipeRefreshLayout.isRefreshing = true
+	private fun loadData() {
+		swipeRefreshLayout.isRefreshing = true
 
-        //Make the HTTP call to load tournaments (using the access token as a header)
-        api.getTournaments().enqueue(object: Client.SimpleCallback<List<Tournament>>(this) {
-            override fun onResponse(data: List<Tournament>?, errorResponse: Response<List<Tournament>>?) {
-                swipeRefreshLayout.isRefreshing = false
-                data?.let {
-                    adapter.tournaments = it
-                    adapter.notifyDataSetChanged()
-                }
-            }
-        })
-    }
+		//Make the HTTP call to load tournaments (using the access token as a header)
+		api.getTournaments().enqueue(object: Client.SimpleCallback<List<Tournament>>(this) {
+			override fun onResponse(data: List<Tournament>?, errorResponse: Response<List<Tournament>>?) {
+				swipeRefreshLayout.isRefreshing = false
+				data?.let {
+					adapter.tournaments = it
+					adapter.notifyDataSetChanged()
+				}
+			}
+		})
+	}
 
-    inner class TournamentAdapter(var tournaments: List<Tournament> = emptyList()): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
+	inner class TournamentAdapter(var tournaments: List<Tournament> = emptyList()): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
 
-        override fun getItemCount() = tournaments.size
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TournamentViewHolder(layoutInflater.inflate(R.layout.row_tournament, parent, false))
-        override fun onBindViewHolder(holder: TournamentViewHolder, position: Int) {
-            holder.bind(tournaments[position])
-        }
+		override fun getItemCount() = tournaments.size
+		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = TournamentViewHolder(layoutInflater.inflate(R.layout.row_tournament, parent, false))
+		override fun onBindViewHolder(holder: TournamentViewHolder, position: Int) {
+			holder.bind(tournaments[position])
+		}
 
-        inner class TournamentViewHolder(view: View): RecyclerView.ViewHolder(view) {
-            private val imageView = view.findViewById<ImageView>(R.id.imageView)
-            private val nameTextView = view.findViewById<TextView>(R.id.nameTextView)
-            private val datesTextView = view.findViewById<TextView>(R.id.datesTextView)
+		inner class TournamentViewHolder(view: View): RecyclerView.ViewHolder(view) {
+			private val imageView = view.findViewById<ImageView>(R.id.imageView)
+			private val nameTextView = view.findViewById<TextView>(R.id.nameTextView)
+			private val datesTextView = view.findViewById<TextView>(R.id.datesTextView)
 
-            fun bind(tournament: Tournament) {
-                if (!tournament.imageUrl.isNullOrEmpty()) {
-                    Picasso.with(this@TournamentsActivity)
-                            .load(tournament.imageUrl)
-                            .placeholder(android.R.color.darker_gray)
-                            .into(imageView)
-                }
-                nameTextView.text = tournament.name
-                datesTextView.text = resources.getString(R.string.dates_format, DATE_FORMATTER.format(tournament.startDate), DATE_FORMATTER.format(tournament.endDate))
-                itemView.setOnClickListener {
-                    startActivity(Intent(this@TournamentsActivity, TournamentTabActivity::class.java)
-                            .putExtra(TournamentTabActivity.TOURNAMENT_EXTRA, tournament))
-                }
-            }
-        }
-    }
+			fun bind(tournament: Tournament) {
+				if (!tournament.imageUrl.isNullOrEmpty()) {
+					Picasso.with(this@TournamentsActivity)
+							.load(tournament.imageUrl)
+							.placeholder(android.R.color.darker_gray)
+							.into(imageView)
+				}
+				nameTextView.text = tournament.name
+				datesTextView.text = resources.getString(R.string.dates_format, DATE_FORMATTER.format(tournament.startDate), DATE_FORMATTER.format(tournament.endDate))
+				itemView.setOnClickListener {
+					startActivity(Intent(this@TournamentsActivity, TournamentTabActivity::class.java)
+							.putExtra(TournamentTabActivity.TOURNAMENT_EXTRA, tournament))
+				}
+			}
+		}
+	}
 }

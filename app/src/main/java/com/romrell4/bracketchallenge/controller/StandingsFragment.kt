@@ -19,58 +19,58 @@ import retrofit2.Response
  * Created by romrell4 on 3/25/18
  */
 class StandingsFragment: Fragment() {
-    companion object {
-        private const val TOURNAMENT_EXTRA = "tournament"
+	companion object {
+		private const val TOURNAMENT_EXTRA = "tournament"
 
-        fun newInstance(tournament: Tournament): StandingsFragment {
-            val fragment = StandingsFragment()
-            val bundle = Bundle()
-            bundle.putParcelable(TOURNAMENT_EXTRA, tournament)
-            fragment.arguments = bundle
-            return fragment
-        }
-    }
+		fun newInstance(tournament: Tournament): StandingsFragment {
+			val fragment = StandingsFragment()
+			val bundle = Bundle()
+			bundle.putParcelable(TOURNAMENT_EXTRA, tournament)
+			fragment.arguments = bundle
+			return fragment
+		}
+	}
 
-    private val adapter = BracketAdapter()
+	private val adapter = BracketAdapter()
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater?.inflate(R.layout.fragment_standings, container, false)
+	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+		val view = inflater?.inflate(R.layout.fragment_standings, container, false)
 
-        view?.run {
-            recyclerView.let {
-                it.layoutManager = LinearLayoutManager(activity)
-                it.adapter = adapter
-            }
+		view?.run {
+			recyclerView.let {
+				it.layoutManager = LinearLayoutManager(activity)
+				it.adapter = adapter
+			}
 
-            val tournament = arguments.getParcelable<Tournament>(TOURNAMENT_EXTRA)
-            swipeRefreshLayout.isRefreshing = true
-            Client.createApi().getBrackets(tournament.tournamentId).enqueue(object: Client.SimpleCallback<List<Bracket>>(activity) {
-                override fun onResponse(data: List<Bracket>?, errorResponse: Response<List<Bracket>>?) {
-                    swipeRefreshLayout.isRefreshing = false
-                    data?.let {
-                        adapter.brackets = data.filter { it.bracketId != tournament.masterBracketId }
-                        adapter.notifyDataSetChanged()
-                    }
-                }
-            })
-        }
+			val tournament = arguments.getParcelable<Tournament>(TOURNAMENT_EXTRA)
+			swipeRefreshLayout.isRefreshing = true
+			Client.createApi().getBrackets(tournament.tournamentId).enqueue(object: Client.SimpleCallback<List<Bracket>>(activity) {
+				override fun onResponse(data: List<Bracket>?, errorResponse: Response<List<Bracket>>?) {
+					swipeRefreshLayout.isRefreshing = false
+					data?.let {
+						adapter.brackets = data.filter { it.bracketId != tournament.masterBracketId }
+						adapter.notifyDataSetChanged()
+					}
+				}
+			})
+		}
 
-        return view
-    }
+		return view
+	}
 
-    inner class BracketAdapter(var brackets: List<Bracket> = emptyList()): RecyclerView.Adapter<BracketAdapter.ViewHolder>() {
-        override fun getItemCount() = brackets.size
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_user_score, parent, false))
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(brackets[position])
+	inner class BracketAdapter(var brackets: List<Bracket> = emptyList()): RecyclerView.Adapter<BracketAdapter.ViewHolder>() {
+		override fun getItemCount() = brackets.size
+		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_user_score, parent, false))
+		override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(brackets[position])
 
-        inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
-            private val nameTextView = view.nameTextView
-            private val scoreTextView = view.scoreTextView
+		inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+			private val nameTextView = view.nameTextView
+			private val scoreTextView = view.scoreTextView
 
-            fun bind(bracket: Bracket) {
-                nameTextView.text = bracket.name
-                scoreTextView.text = bracket.score.toString()
-            }
-        }
-    }
+			fun bind(bracket: Bracket) {
+				nameTextView.text = bracket.name
+				scoreTextView.text = bracket.score.toString()
+			}
+		}
+	}
 }
