@@ -41,7 +41,7 @@ abstract class BracketFragment: Fragment() {
 	//Overridable functions
 	protected abstract fun areCellsClickable(): Boolean
 
-	open protected fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity, R.color.black)
+	protected open fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity, R.color.black)
 
 	//Setup functions
 	protected fun setArguments(tournament: Tournament) {
