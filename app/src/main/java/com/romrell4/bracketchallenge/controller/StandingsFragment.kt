@@ -1,6 +1,7 @@
 package com.romrell4.bracketchallenge.controller
 
 import android.app.Fragment
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -31,6 +32,7 @@ class StandingsFragment: Fragment() {
 		}
 	}
 
+	private lateinit var tournament: Tournament
 	private val adapter = BracketAdapter()
 
 	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -42,7 +44,7 @@ class StandingsFragment: Fragment() {
 				it.adapter = adapter
 			}
 
-			val tournament = arguments.getParcelable<Tournament>(TOURNAMENT_EXTRA)
+			tournament = arguments.getParcelable<Tournament>(TOURNAMENT_EXTRA)
 			swipeRefreshLayout.isRefreshing = true
 			Client.createApi().getBrackets(tournament.tournamentId).enqueue(object: Client.SimpleCallback<List<Bracket>>(activity) {
 				override fun onResponse(data: List<Bracket>?, errorResponse: Response<List<Bracket>>?) {
@@ -70,6 +72,12 @@ class StandingsFragment: Fragment() {
 			fun bind(bracket: Bracket) {
 				nameTextView.text = bracket.name
 				scoreTextView.text = bracket.score.toString()
+
+				itemView.setOnClickListener {
+					startActivity(Intent(activity, UserBracketActivity::class.java)
+							.putExtra(UserBracketActivity.TOURNAMENT_EXTRA, tournament)
+							.putExtra(UserBracketActivity.BRACKET_EXTRA, bracket))
+				}
 			}
 		}
 	}

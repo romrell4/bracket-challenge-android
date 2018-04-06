@@ -1,5 +1,7 @@
 package com.romrell4.bracketchallenge.model
 
+import java.io.Serializable
+
 /**
  * Created by romrell4 on 3/25/18
  */
@@ -10,4 +12,4 @@ data class Bracket(
 		var name: String,
 		var score: Int = 0,
 		@JvmSuppressWildcards var rounds: List<List<Match>>? = null
-)
+): Serializable

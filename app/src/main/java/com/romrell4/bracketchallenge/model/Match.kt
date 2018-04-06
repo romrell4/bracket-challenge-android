@@ -1,5 +1,7 @@
 package com.romrell4.bracketchallenge.model
 
+import java.io.Serializable
+
 /**
  * Created by romrell4 on 3/25/18
  */
@@ -16,7 +18,7 @@ data class Match(
 		var seed2: Int?,
 		var winnerId: Int?,
 		var winnerName: String?
-) {
+): Serializable {
 	var player1: Player?
 		get() = Player(player1Id, player1Name, seed1)
 		set(value) {
