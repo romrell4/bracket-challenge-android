@@ -16,6 +16,9 @@ class UserBracketActivity: AppCompatActivity() {
 		super.onCreate(savedInstanceState)
 		setContentView(R.layout.activity_user_bracket)
 
+		//TODO: Set title?
+		//TODO: Double check that it's displaying the right stuff
+
 		val tournament = intent.getParcelableExtra<Tournament>(TOURNAMENT_EXTRA)
 		val bracket = intent.getSerializableExtra(BRACKET_EXTRA) as Bracket
 

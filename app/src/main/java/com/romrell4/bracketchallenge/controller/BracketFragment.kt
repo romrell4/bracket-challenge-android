@@ -62,6 +62,7 @@ abstract class BracketFragment: Fragment() {
 		super.onCreateOptionsMenu(menu, inflater)
 	}
 
+	//TODO: Add score to view
 	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?) = inflater?.inflate(R.layout.fragment_bracket, container, false)
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
