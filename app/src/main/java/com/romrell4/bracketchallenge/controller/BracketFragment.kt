@@ -39,7 +39,7 @@ abstract class BracketFragment: Fragment() {
 		}
 
 	//Overridable functions
-	protected abstract val areCellsClickable: Boolean
+	protected abstract fun areCellsClickable(): Boolean
 
 	open protected fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity, R.color.black)
 
@@ -56,7 +56,7 @@ abstract class BracketFragment: Fragment() {
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-		if (areCellsClickable) {
+		if (areCellsClickable()) {
 			inflater?.inflate(R.menu.save_tournament, menu)
 		}
 		super.onCreateOptionsMenu(menu, inflater)
@@ -154,7 +154,7 @@ abstract class BracketFragment: Fragment() {
 				checkmark2.visibility = if (match.player2Id != null && match.player2Id == match.winnerId) View.VISIBLE else View.GONE
 
 				//Set up the click listener
-				if (areCellsClickable) {
+				if (areCellsClickable()) {
 					player1Layout.setOnClickListener {
 						checkmark1.visible = !checkmark1.visible
 						checkmark2.visibility = View.GONE

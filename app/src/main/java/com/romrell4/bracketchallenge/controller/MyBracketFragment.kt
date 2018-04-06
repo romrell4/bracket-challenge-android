@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.fragment_bracket.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 /**
  * Created by romrell4 on 3/25/18
@@ -32,7 +33,7 @@ class MyBracketFragment: BracketFragment() {
 	}
 
 	//Abstract properties
-	override val areCellsClickable = true
+	override fun areCellsClickable() = tournament.startDate?.after(Date()) ?: false
 
 	override fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity,
 			if (playerId == null || winnerId == null || predictionId == null) {

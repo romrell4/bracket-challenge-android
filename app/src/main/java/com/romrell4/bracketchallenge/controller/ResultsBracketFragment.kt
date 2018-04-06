@@ -22,7 +22,7 @@ class ResultsBracketFragment: BracketFragment() {
 	}
 
 	//Abstract properties
-	override val areCellsClickable = Identity.user.admin
+	override fun areCellsClickable() = Identity.user.admin
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
