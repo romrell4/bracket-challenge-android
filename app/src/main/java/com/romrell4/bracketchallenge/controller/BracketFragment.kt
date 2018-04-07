@@ -160,13 +160,13 @@ abstract class BracketFragment: Fragment() {
 						checkmark1.visible = !checkmark1.visible
 						checkmark2.visibility = View.GONE
 						match.winner = if (checkmark1.visible) match.player1 else null
-						notifyItemChanged(matches.indexOf(match))
+						bind(match, masterMatch)
 					}
 					player2Layout.setOnClickListener {
 						checkmark1.visibility = View.GONE
 						checkmark2.visible = !checkmark2.visible
 						match.winner = if (checkmark2.visible) match.player2 else null
-						notifyItemChanged(matches.indexOf(match))
+						bind(match, masterMatch)
 					}
 				}
 			}
