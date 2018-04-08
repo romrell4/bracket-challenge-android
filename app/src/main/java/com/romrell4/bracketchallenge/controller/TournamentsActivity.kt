@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -160,10 +161,13 @@ class TournamentsActivity: AppCompatActivity() {
 				nameTextView.text = tournament.name
 				datesTextView.text = resources.getString(R.string.dates_format, DATE_FORMATTER.format(tournament.startDate), DATE_FORMATTER.format(tournament.endDate))
 
-				//TODO: Only let them click if the tournament is active
 				itemView.setOnClickListener {
-					startActivity(Intent(this@TournamentsActivity, TournamentTabActivity::class.java)
-							.putExtra(TournamentTabActivity.TOURNAMENT_EXTRA, tournament))
+					if (tournament.masterBracketId != null) {
+						startActivity(Intent(this@TournamentsActivity, TournamentTabActivity::class.java)
+								.putExtra(TournamentTabActivity.TOURNAMENT_EXTRA, tournament))
+					} else {
+						showToast(R.string.no_draws, Toast.LENGTH_LONG)
+					}
 				}
 			}
 		}
