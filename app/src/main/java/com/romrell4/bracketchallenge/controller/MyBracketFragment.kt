@@ -42,27 +42,6 @@ class MyBracketFragment: UserBracketFragment() {
 		loadBracket()
 	}
 
-	override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
-		R.id.saveBracket -> {
-			bracket?.let { it ->
-				it.tournamentId?.let { tournamentId ->
-					it.bracketId?.let { bracketId ->
-						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
-							override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
-								data?.let { newBracket ->
-									activity.showToast(R.string.bracket_update_success)
-									bracket = newBracket
-								}
-							}
-						})
-					}
-				}
-			}
-			true
-		}
-		else -> false
-	}
-
 	//Custom functions
 
 	private fun loadBracket() {

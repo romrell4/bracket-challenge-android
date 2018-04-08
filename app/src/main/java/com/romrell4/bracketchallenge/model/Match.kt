@@ -27,11 +27,11 @@ data class Match(
 			seed1 = value?.seed
 		}
 	var player2: Player?
-		get() = Player(player2Id, player2Name, seed1)
+		get() = Player(player2Id, player2Name, seed2)
 		set(value) {
-			player1Id = value?.playerId
-			player1Name = value?.name
-			seed1 = value?.seed
+			player2Id = value?.playerId
+			player2Name = value?.name
+			seed2 = value?.seed
 		}
 	var winner: Player?
 		get() = Player(winnerId, winnerName, null)

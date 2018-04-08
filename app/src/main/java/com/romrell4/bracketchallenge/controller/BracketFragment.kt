@@ -8,10 +8,8 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.romrell4.bracketchallenge.R
-import com.romrell4.bracketchallenge.model.Bracket
-import com.romrell4.bracketchallenge.model.Client
-import com.romrell4.bracketchallenge.model.Match
-import com.romrell4.bracketchallenge.model.Tournament
+import com.romrell4.bracketchallenge.model.*
+import com.romrell4.bracketchallenge.support.showToast
 import com.romrell4.bracketchallenge.support.visible
 import kotlinx.android.synthetic.main.fragment_bracket.*
 import kotlinx.android.synthetic.main.row_match.view.*
@@ -78,6 +76,27 @@ abstract class BracketFragment: Fragment() {
 		}
 	}
 
+	override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
+		R.id.saveBracket -> {
+			bracket?.let { it ->
+				it.tournamentId?.let { tournamentId ->
+					it.bracketId?.let { bracketId ->
+						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+							override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
+								data?.let { newBracket ->
+									activity.showToast(R.string.bracket_update_success)
+									bracket = newBracket
+								}
+							}
+						})
+					}
+				}
+			}
+			true
+		}
+		else -> false
+	}
+
 	//UI Functions
 
 	private fun setupViewBracketUI() {
@@ -85,9 +104,14 @@ abstract class BracketFragment: Fragment() {
 			viewSwitcher.displayedChild = VIEW_BRACKET_INDEX
 			matchesViewSwitcher.displayedChild = VIEW_BRACKET_ROUNDS_INDEX
 
-			//Tell the view pager to keep all pages in memory (so that we can scroll between them)
-			bracket?.rounds?.let { viewPager.offscreenPageLimit = it.size - 1 }
-			viewPager.adapter = RoundPagerAdapter(bracket, masterBracket)
+			//If the adapter already exists, just update the viewPager (they just tapped save)
+			if (viewPager.adapter != null) {
+				viewPager.adapter?.notifyDataSetChanged()
+			} else {
+				//Tell the view pager to keep all pages in memory (so that we can scroll between them)
+				bracket?.rounds?.let { viewPager.offscreenPageLimit = it.size - 1 }
+				viewPager.adapter = RoundPagerAdapter(bracket, masterBracket)
+			}
 		}
 	}
 
@@ -103,7 +127,7 @@ abstract class BracketFragment: Fragment() {
 			val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
 			(roundView as? RecyclerView?)?.apply {
 				layoutManager = LinearLayoutManager(activity)
-				adapter = MatchAdapter(position, bracket?.rounds?.get(position) ?: emptyList(), masterBracket?.rounds?.get(position) ?: emptyList())
+				adapter = MatchAdapter(bracket?.rounds?.get(position) ?: emptyList(), masterBracket?.rounds?.get(position) ?: emptyList())
 
 				recyclerViews[position] = this
 				scrollListeners[position] = object: RecyclerView.OnScrollListener() {
@@ -120,53 +144,68 @@ abstract class BracketFragment: Fragment() {
 			container.addView(roundView)
 			return roundView
 		}
-	}
 
-	inner class MatchAdapter(private val round: Int, private val matches: List<Match>, private val masterMatches: List<Match>): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
-		override fun getItemCount() = matches.size
-		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_match, parent, false))
-		override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(matches[position], masterMatches[position])
+		inner class MatchAdapter(val matches: List<Match>, private val masterMatches: List<Match>): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
+			override fun getItemCount() = matches.size
+			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_match, parent, false))
+			override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(matches[position], masterMatches[position])
 
-		inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
-			private val player1Layout = view.player1Layout
-			private val player2Layout = view.player2Layout
-			private val nameTextView1 = view.nameTextView1
-			private val checkmark1 = view.checkmark1
-			private val nameTextView2 = view.nameTextView2
-			private val checkmark2 = view.checkmark2
+			inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+				private val player1Layout = view.player1Layout
+				private val player2Layout = view.player2Layout
+				private val nameTextView1 = view.nameTextView1
+				private val checkmark1 = view.checkmark1
+				private val nameTextView2 = view.nameTextView2
+				private val checkmark2 = view.checkmark2
 
-			fun bind(match: Match, masterMatch: Match) {
-				//Calculate the correct margin around the cell
-				(itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.run {
-					val cardHeight = activity.resources.getDimension(R.dimen.match_card_height)
-					val cardMargin = activity.resources.getDimension(R.dimen.match_card_margin)
-					val newMargin = ((cardHeight / 2 + cardMargin) * (2.0.pow(round) - 1) + cardMargin).toInt()
-					topMargin = newMargin
-					bottomMargin = newMargin
-					itemView.requestLayout()
+				fun bind(match: Match, masterMatch: Match) {
+					//Calculate the correct margin around the cell
+					(itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.run {
+						val cardHeight = activity.resources.getDimension(R.dimen.match_card_height)
+						val cardMargin = activity.resources.getDimension(R.dimen.match_card_margin)
+						val newMargin = ((cardHeight / 2 + cardMargin) * (2.0.pow(match.round - 1) - 1) + cardMargin).toInt()
+						topMargin = newMargin
+						bottomMargin = newMargin
+						itemView.requestLayout()
+					}
+
+					//Set up the text and checks
+					nameTextView1.text = match.player1Full()
+					nameTextView1.setTextColor(getTextColor(match.player1Id, match.winnerId, masterMatch.winnerId))
+					checkmark1.visibility = if (match.player1Id != null && match.player1Id == match.winnerId) View.VISIBLE else View.GONE
+					nameTextView2.text = match.player2Full()
+					nameTextView2.setTextColor(getTextColor(match.player2Id, match.winnerId, masterMatch.winnerId))
+					checkmark2.visibility = if (match.player2Id != null && match.player2Id == match.winnerId) View.VISIBLE else View.GONE
+
+					//Set up the click listener
+					if (areCellsClickable()) {
+						player1Layout.setOnClickListener {
+							checkmark1.visible = !checkmark1.visible
+							checkmark2.visibility = View.GONE
+							updateWinnerAndNextRound(match, if (checkmark1.visible) match.player1 else null)
+							bind(match, masterMatch)
+						}
+						player2Layout.setOnClickListener {
+							checkmark1.visibility = View.GONE
+							checkmark2.visible = !checkmark2.visible
+							updateWinnerAndNextRound(match, if (checkmark2.visible) match.player2 else null)
+							bind(match, masterMatch)
+						}
+					}
 				}
 
-				//Set up the text and checks
-				nameTextView1.text = match.player1Full()
-				nameTextView1.setTextColor(getTextColor(match.player1Id, match.winnerId, masterMatch.winnerId))
-				checkmark1.visibility = if (match.player1Id != null && match.player1Id == match.winnerId) View.VISIBLE else View.GONE
-				nameTextView2.text = match.player2Full()
-				nameTextView2.setTextColor(getTextColor(match.player2Id, match.winnerId, masterMatch.winnerId))
-				checkmark2.visibility = if (match.player2Id != null && match.player2Id == match.winnerId) View.VISIBLE else View.GONE
-
-				//Set up the click listener
-				if (areCellsClickable()) {
-					player1Layout.setOnClickListener {
-						checkmark1.visible = !checkmark1.visible
-						checkmark2.visibility = View.GONE
-						match.winner = if (checkmark1.visible) match.player1 else null
-						bind(match, masterMatch)
-					}
-					player2Layout.setOnClickListener {
-						checkmark1.visibility = View.GONE
-						checkmark2.visible = !checkmark2.visible
-						match.winner = if (checkmark2.visible) match.player2 else null
-						bind(match, masterMatch)
+				private fun updateWinnerAndNextRound(match: Match, winner: Player?) {
+					match.winner = winner
+					recyclerViews[match.round]?.also {
+						val currentPositionIndex = match.position - 1 //Position is 1 indexed
+						val nextPositionIndex = currentPositionIndex / 2 //This will always round down
+						val nextMatch = bracket?.rounds?.get(match.round)?.get(nextPositionIndex) //Round is 1 indexed, so this will load the next round's match
+						if (currentPositionIndex % 2 == 0) {
+							nextMatch?.player1 = winner
+						} else {
+							nextMatch?.player2 = winner
+						}
+						it.adapter.notifyItemChanged(nextPositionIndex)
 					}
 				}
 			}
