@@ -13,6 +13,7 @@ import com.romrell4.bracketchallenge.support.showToast
 import com.romrell4.bracketchallenge.support.visible
 import kotlinx.android.synthetic.main.fragment_bracket.*
 import kotlinx.android.synthetic.main.row_match.view.*
+import kotlinx.android.synthetic.main.view_bracket.*
 import retrofit2.Response
 import kotlin.math.pow
 
@@ -60,7 +61,6 @@ abstract class BracketFragment: Fragment() {
 		super.onCreateOptionsMenu(menu, inflater)
 	}
 
-	//TODO: Add score to view
 	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?) = inflater?.inflate(R.layout.fragment_bracket, container, false)
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -103,6 +103,8 @@ abstract class BracketFragment: Fragment() {
 		if (bracket != null && masterBracket != null) {
 			viewSwitcher.displayedChild = VIEW_BRACKET_INDEX
 			matchesViewSwitcher.displayedChild = VIEW_BRACKET_ROUNDS_INDEX
+
+			scoreTextView.text = getString(R.string.score_format, bracket?.score)
 
 			//If the adapter already exists, just update the viewPager (they just tapped save)
 			if (viewPager.adapter != null) {

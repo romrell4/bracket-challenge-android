@@ -20,4 +20,5 @@
 	<string name="create_bracket_button_text">Create Bracket</string>
 	<string name="save">Save</string>
 	<string name="bracket_update_success">Bracket successfully updated</string>
+	<string name="score_format">Score: %1$d</string>
 </resources>
