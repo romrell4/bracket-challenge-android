@@ -147,7 +147,7 @@ abstract class BracketFragment: Fragment() {
 			return roundView
 		}
 
-		inner class MatchAdapter(val matches: List<Match>, private val masterMatches: List<Match>): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
+		inner class MatchAdapter(private val matches: List<Match>, private val masterMatches: List<Match>): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
 			override fun getItemCount() = matches.size
 			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_match, parent, false))
 			override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(matches[position], masterMatches[position])
@@ -180,30 +180,30 @@ abstract class BracketFragment: Fragment() {
 					checkmark2.visibility = if (match.player2Id != null && match.player2Id == match.winnerId) View.VISIBLE else View.GONE
 
 					//Set up the click listener
-					//TODO: Only let the user click if the cell is filled in (no byes)
 					if (areCellsClickable()) {
-						player1Layout.setOnClickListener {
-							if (match.player1Id != null) {
-								matchTapped(match, masterMatch, true)
+						val matchTapped = { topTapped: Boolean ->
+							val selectedPlayer = if (topTapped) match.player1 else match.player2
+
+							//Only change if the click a non-blank cell
+							if (selectedPlayer != null) {
+								val selectedCheckmark = if (topTapped) checkmark1 else checkmark2
+								val otherCheckmark = if (topTapped) checkmark2 else checkmark1
+								selectedCheckmark.visible = !selectedCheckmark.visible
+								otherCheckmark.visible = false
+
+								val winner = if (selectedCheckmark.visible) selectedPlayer else null
+								updateWinnerAndNextRound(match, winner)
+								bind(match, masterMatch)
 							}
+						}
+
+						player1Layout.setOnClickListener {
+							matchTapped(true)
 						}
 						player2Layout.setOnClickListener {
-							if (match.player2Id != null) {
-								matchTapped(match, masterMatch, false)
-							}
+							matchTapped(false)
 						}
 					}
-				}
-
-				private fun matchTapped(match: Match, masterMatch: Match, topTapped: Boolean) {
-					val selectedCheckmark = if (topTapped) checkmark1 else checkmark2
-					val otherCheckmark = if (topTapped) checkmark2 else checkmark1
-					selectedCheckmark.visible = !selectedCheckmark.visible
-					otherCheckmark.visible = false
-
-					val selectedPlayer = if (selectedCheckmark.visible) (if (topTapped) match.player1 else match.player2) else null
-					updateWinnerAndNextRound(match, selectedPlayer)
-					bind(match, masterMatch)
 				}
 
 				private fun updateWinnerAndNextRound(match: Match, winner: Player?) {
