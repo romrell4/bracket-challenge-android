@@ -178,6 +178,7 @@ abstract class BracketFragment: Fragment() {
 					checkmark2.visibility = if (match.player2Id != null && match.player2Id == match.winnerId) View.VISIBLE else View.GONE
 
 					//Set up the click listener
+					//TODO: Only let the user click if the cell is filled in (no byes)
 					if (areCellsClickable()) {
 						player1Layout.setOnClickListener {
 							checkmark1.visible = !checkmark1.visible
