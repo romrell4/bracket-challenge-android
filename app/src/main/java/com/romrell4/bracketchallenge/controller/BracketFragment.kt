@@ -183,18 +183,27 @@ abstract class BracketFragment: Fragment() {
 					//TODO: Only let the user click if the cell is filled in (no byes)
 					if (areCellsClickable()) {
 						player1Layout.setOnClickListener {
-							checkmark1.visible = !checkmark1.visible
-							checkmark2.visibility = View.GONE
-							updateWinnerAndNextRound(match, if (checkmark1.visible) match.player1 else null)
-							bind(match, masterMatch)
+							if (match.player1Id != null) {
+								matchTapped(match, masterMatch, true)
+							}
 						}
 						player2Layout.setOnClickListener {
-							checkmark1.visibility = View.GONE
-							checkmark2.visible = !checkmark2.visible
-							updateWinnerAndNextRound(match, if (checkmark2.visible) match.player2 else null)
-							bind(match, masterMatch)
+							if (match.player2Id != null) {
+								matchTapped(match, masterMatch, false)
+							}
 						}
 					}
+				}
+
+				private fun matchTapped(match: Match, masterMatch: Match, topTapped: Boolean) {
+					val selectedCheckmark = if (topTapped) checkmark1 else checkmark2
+					val otherCheckmark = if (topTapped) checkmark2 else checkmark1
+					selectedCheckmark.visible = !selectedCheckmark.visible
+					otherCheckmark.visible = false
+
+					val selectedPlayer = if (selectedCheckmark.visible) (if (topTapped) match.player1 else match.player2) else null
+					updateWinnerAndNextRound(match, selectedPlayer)
+					bind(match, masterMatch)
 				}
 
 				private fun updateWinnerAndNextRound(match: Match, winner: Player?) {
