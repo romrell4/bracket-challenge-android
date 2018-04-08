@@ -94,6 +94,9 @@ class TournamentsActivity: AppCompatActivity() {
 			adapter.tournaments = emptyList()
 
 			viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
+
+			supportActionBar?.subtitle = "Not logged in"
+
 			loginButton.setReadPermissions("email")
 			loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
 				override fun onSuccess(result: LoginResult?) {

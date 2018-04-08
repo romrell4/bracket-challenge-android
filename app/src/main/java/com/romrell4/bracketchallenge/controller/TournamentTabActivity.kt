@@ -20,7 +20,6 @@ class TournamentTabActivity: AppCompatActivity() {
 		fragmentManager.beginTransaction().replace(R.id.frameLayout, MyBracketFragment.newInstance(tournament)).commit()
 		println(tournament)
 
-		//TODO: Figure out a way to save the fragments (show/hide?) https://github.com/roughike/BottomBar/issues/385
 		navView.setOnNavigationItemSelectedListener {
 			fragmentManager.beginTransaction()
 					.replace(R.id.frameLayout, when (it.itemId) {
