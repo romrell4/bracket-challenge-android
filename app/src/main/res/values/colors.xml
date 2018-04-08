@@ -7,7 +7,7 @@
 	<color name="black">#000</color>
 	<color name="white">#FFF</color>
 	<color name="white_trans">#99FFFFFF</color>
-	<color name="background_gray">#EEE</color>
+	<color name="background_gray">#CCC</color>
 	<color name="light_gray">#AAA</color>
 	<color name="winner_green">#008200</color>
 	<color name="red">#DD0000</color>
