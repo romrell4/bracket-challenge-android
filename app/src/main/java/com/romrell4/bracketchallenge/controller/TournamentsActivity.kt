@@ -116,6 +116,7 @@ class TournamentsActivity: AppCompatActivity() {
 			})
 		} else if (adapter.tournaments.isEmpty()) { //Only reload the data if we haven't loaded already
 			viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
+			supportActionBar?.subtitle = "Logged in as ${Identity.user.name}"
 			loadData()
 		}
 
