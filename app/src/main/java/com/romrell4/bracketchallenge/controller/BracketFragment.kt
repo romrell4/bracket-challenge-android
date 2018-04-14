@@ -208,7 +208,7 @@ abstract class BracketFragment: Fragment() {
 
 				private fun updateWinnerAndNextRound(match: Match, winner: Player?) {
 					match.winner = winner
-					recyclerViews[match.round]?.also {
+					recyclerViews.get(match.round)?.also {
 						val currentPositionIndex = match.position - 1 //Position is 1 indexed
 						val nextPositionIndex = currentPositionIndex / 2 //This will always round down
 						val nextMatch = bracket?.rounds?.get(match.round)?.get(nextPositionIndex) //Round is 1 indexed, so this will load the next round's match

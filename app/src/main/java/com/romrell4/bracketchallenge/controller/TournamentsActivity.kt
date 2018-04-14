@@ -38,6 +38,8 @@ class TournamentsActivity: AppCompatActivity() {
 		private const val TOURNAMENTS_VIEW_INDEX = 1
 	}
 
+	//TODO: Difference between qualifiers and bye
+
 	private val callbackManager = CallbackManager.Factory.create()
 	private val adapter = TournamentAdapter()
 	private val loggedIn get() = AccessToken.getCurrentAccessToken() != null && Identity.load(this) != null
