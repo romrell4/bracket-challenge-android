@@ -4,9 +4,9 @@
 	<item
 		android:id="@+id/logout"
 		android:title="@string/log_out" />
-	<item
-		android:id="@+id/addTournament"
-		android:icon="@drawable/ic_add_black_24dp"
-		android:title="@string/add_tournament"
-		/>
+	<!--<item-->
+		<!--android:id="@+id/addTournament"-->
+		<!--android:icon="@drawable/ic_add_black_24dp"-->
+		<!--android:title="@string/add_tournament"-->
+		<!--/>-->
 </menu>

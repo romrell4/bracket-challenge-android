@@ -65,7 +65,7 @@ class TournamentsActivity: AppCompatActivity() {
 	override fun onCreateOptionsMenu(menu: Menu?): Boolean {
 		if (loggedIn) {
 			menuInflater.inflate(R.menu.menu_tournaments, menu)
-			menu?.findItem(R.id.addTournament)?.isVisible = Identity.user.admin
+//			menu?.findItem(R.id.addTournament)?.isVisible = Identity.user.admin
 		}
 		return true
 	}
@@ -76,10 +76,10 @@ class TournamentsActivity: AppCompatActivity() {
 			checkLoginStatus()
 			true
 		}
-		R.id.addTournament -> {
-			AddTournamentDialog(this).show()
-			true
-		}
+//		R.id.addTournament -> {
+//			AddTournamentDialog(this).show()
+//			true
+//		}
 		else -> super.onOptionsItemSelected(item)
 	}
 
