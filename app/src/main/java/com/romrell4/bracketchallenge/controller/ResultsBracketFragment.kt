@@ -23,6 +23,7 @@ class ResultsBracketFragment: BracketFragment() {
 
 	//Abstract properties
 	override fun areCellsClickable() = Identity.user.admin
+	override val cellNotClickableReason: String = "Only admins can update the results bracket"
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)

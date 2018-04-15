@@ -33,6 +33,7 @@ class MyBracketFragment: UserBracketFragment() {
 
 	//Abstract properties
 	override fun areCellsClickable() = tournament.startDate?.after(Date()) ?: false
+	override val cellNotClickableReason: String = "This tournament has already begun. You cannot make any more edits to your bracket"
 
 	//Lifecycle
 

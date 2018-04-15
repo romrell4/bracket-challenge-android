@@ -7,6 +7,7 @@ import android.support.v4.view.PagerAdapter
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
+import android.widget.Toast
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.*
 import com.romrell4.bracketchallenge.support.showToast
@@ -37,9 +38,10 @@ abstract class BracketFragment: Fragment() {
 			setupViewBracketUI()
 		}
 
-	//Overridable functions
+	//Overridable values
 	protected abstract fun areCellsClickable(): Boolean
 
+	protected abstract val cellNotClickableReason: String
 	protected open fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity, R.color.black)
 
 	//Setup functions
@@ -180,8 +182,8 @@ abstract class BracketFragment: Fragment() {
 					checkmark2.visibility = if (match.player2Id != null && match.player2Id == match.winnerId) View.VISIBLE else View.GONE
 
 					//Set up the click listener
-					if (areCellsClickable()) {
-						val matchTapped = { topTapped: Boolean ->
+					val matchTapped = { topTapped: Boolean ->
+						if (areCellsClickable()) {
 							val selectedPlayer = if (topTapped) match.player1 else match.player2
 
 							//Only change if the click a non-blank cell
@@ -195,14 +197,16 @@ abstract class BracketFragment: Fragment() {
 								updateWinnerAndNextRound(match, winner)
 								bind(match, masterMatch)
 							}
+						} else {
+							activity.showToast(cellNotClickableReason, Toast.LENGTH_SHORT)
 						}
+					}
 
-						player1Layout.setOnClickListener {
-							matchTapped(true)
-						}
-						player2Layout.setOnClickListener {
-							matchTapped(false)
-						}
+					player1Layout.setOnClickListener {
+						matchTapped(true)
+					}
+					player2Layout.setOnClickListener {
+						matchTapped(false)
 					}
 				}
 

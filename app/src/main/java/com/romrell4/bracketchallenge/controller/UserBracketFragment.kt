@@ -20,6 +20,7 @@ open class UserBracketFragment: BracketFragment() {
 	}
 
 	override fun areCellsClickable() = false
+	override val cellNotClickableReason: String = "You cannot edit another user's bracket"
 
 	override fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity,
 			if (playerId == null || winnerId == null || predictionId == null) {
