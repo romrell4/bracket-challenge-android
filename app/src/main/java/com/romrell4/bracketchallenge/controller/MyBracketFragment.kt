@@ -83,7 +83,5 @@ class MyBracketFragment: UserBracketFragment() {
 			createBracketButton.visible = false
 			createBracketTextView.text = getString(R.string.tournament_started_cannot_create_bracket)
 		}
-
-
 	}
 }
