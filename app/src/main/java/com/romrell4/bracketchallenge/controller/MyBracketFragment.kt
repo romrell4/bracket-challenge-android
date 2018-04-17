@@ -11,6 +11,7 @@ import com.romrell4.bracketchallenge.model.Tournament
 import com.romrell4.bracketchallenge.support.Identity
 import com.romrell4.bracketchallenge.support.showLoadingDialog
 import com.romrell4.bracketchallenge.support.showToast
+import com.romrell4.bracketchallenge.support.visible
 import kotlinx.android.synthetic.main.fragment_bracket.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -65,17 +66,24 @@ class MyBracketFragment: UserBracketFragment() {
 	private fun setupCreateBracketUI() {
 		viewSwitcher.displayedChild = CREATE_BRACKET_INDEX
 
-		createBracketButton.setOnClickListener {
-			val dialog = activity.showLoadingDialog()
-			Client.createApi().createBracket(tournament.tournamentId, Bracket(name = Identity.user.name)).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
-				override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
-					dialog.dismiss()
+		if (areCellsClickable()) {
+			createBracketButton.setOnClickListener {
+				val dialog = activity.showLoadingDialog()
+				Client.createApi().createBracket(tournament.tournamentId, Bracket(name = Identity.user.name)).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+					override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
+						dialog.dismiss()
 
-					data?.let {
-						bracket = it
+						data?.let {
+							bracket = it
+						}
 					}
-				}
-			})
+				})
+			}
+		} else {
+			createBracketButton.visible = false
+			createBracketTextView.text = getString(R.string.tournament_started_cannot_create_bracket)
 		}
+
+
 	}
 }
