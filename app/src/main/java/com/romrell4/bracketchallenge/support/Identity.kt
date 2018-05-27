@@ -13,7 +13,7 @@ class Identity {
 	companion object {
 		private const val USER_PREF_KEY = "user"
 		lateinit var user: User private set
-		val gson = Gson()
+		private val gson = Gson()
 
 		fun load(context: Context): User? {
 			val prefs = PreferenceManager.getDefaultSharedPreferences(context)

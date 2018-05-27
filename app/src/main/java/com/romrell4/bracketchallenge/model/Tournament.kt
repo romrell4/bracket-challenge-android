@@ -14,7 +14,7 @@ data class Tournament(
 		var tournamentId: Int,
 		var name: String?,
 		var masterBracketId: Int?,
-		var drawsUrl: String?,
+		private var drawsUrl: String?,
 		var imageUrl: String?,
 		var startDate: Date?,
 		var endDate: Date?

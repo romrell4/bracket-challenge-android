@@ -44,7 +44,7 @@ class StandingsFragment: Fragment() {
 				it.adapter = adapter
 			}
 
-			tournament = arguments.getParcelable<Tournament>(TOURNAMENT_EXTRA)
+			tournament = arguments.getParcelable(TOURNAMENT_EXTRA)
 			swipeRefreshLayout.isRefreshing = true
 			Client.createApi().getBrackets(tournament.tournamentId).enqueue(object: Client.SimpleCallback<List<Bracket>>(activity) {
 				override fun onResponse(data: List<Bracket>?, errorResponse: Response<List<Bracket>>?) {

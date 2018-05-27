@@ -11,13 +11,13 @@ data class Match(
 		var round: Int,
 		var position: Int,
 		var player1Id: Int?,
-		var player1Name: String?,
+		private var player1Name: String?,
 		var player2Id: Int?,
-		var player2Name: String?,
-		var seed1: Int?,
-		var seed2: Int?,
+		private var player2Name: String?,
+		private var seed1: Int?,
+		private var seed2: Int?,
 		var winnerId: Int?,
-		var winnerName: String?
+		private var winnerName: String?
 ): Serializable {
 	var player1: Player?
 		get() = Player(player1Id, player1Name, seed1)

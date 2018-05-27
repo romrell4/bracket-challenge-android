@@ -2,7 +2,6 @@ package com.romrell4.bracketchallenge.controller
 
 import android.os.Bundle
 import android.view.View
-import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.Bracket
 import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament

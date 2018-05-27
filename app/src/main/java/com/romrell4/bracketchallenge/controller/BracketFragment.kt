@@ -85,9 +85,9 @@ abstract class BracketFragment: Fragment() {
 					it.bracketId?.let { bracketId ->
 						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
 							override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
-								data?.let { newBracket ->
+								data?.let {
 									activity.showToast(R.string.bracket_update_success)
-									bracket = newBracket
+									//TODO: If you just call `bracket = it` here, you reset the pointer which causes the adapter data to be stale. Figure out a way to adhere to the data coming back
 								}
 							}
 						})
@@ -114,12 +114,12 @@ abstract class BracketFragment: Fragment() {
 			} else {
 				//Tell the view pager to keep all pages in memory (so that we can scroll between them)
 				bracket?.rounds?.let { viewPager.offscreenPageLimit = it.size - 1 }
-				viewPager.adapter = RoundPagerAdapter(bracket, masterBracket)
+				viewPager.adapter = RoundPagerAdapter()
 			}
 		}
 	}
 
-	inner class RoundPagerAdapter(private val bracket: Bracket?, private val masterBracket: Bracket?): PagerAdapter() {
+	inner class RoundPagerAdapter: PagerAdapter() {
 		private var recyclerViews = arrayOfNulls<RecyclerView>(count)
 		private var scrollListeners = arrayOfNulls<RecyclerView.OnScrollListener>(count)
 
