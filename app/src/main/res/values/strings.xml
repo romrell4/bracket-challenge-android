@@ -23,4 +23,5 @@
 	<string name="score_format">Score: %1$d</string>
 	<string name="no_draws">The draws for this tournament have not yet been published. Brackets cannot be made until the draw is complete.</string>
 	<string name="tournament_started_cannot_create_bracket">This tournament has already started. No new brackets are being taken.</string>
+	<string name="no_changes">No changes to save</string>
 </resources>

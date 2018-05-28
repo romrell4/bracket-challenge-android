@@ -30,6 +30,10 @@ abstract class BracketFragment: Fragment() {
 	protected var bracket: Bracket? = null
 		set(value) {
 			field = value
+
+			//Whenever this is set, reset changes made
+			changesMade = false
+
 			setupViewBracketUI()
 		}
 	protected var masterBracket: Bracket? = null
@@ -37,6 +41,7 @@ abstract class BracketFragment: Fragment() {
 			field = value
 			setupViewBracketUI()
 		}
+	private var changesMade = false
 
 	//Overridable values
 	protected abstract fun areCellsClickable(): Boolean
@@ -78,28 +83,21 @@ abstract class BracketFragment: Fragment() {
 		}
 	}
 
+	override fun onStop() {
+		super.onStop()
+
+		saveBracket()
+	}
+
 	override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
 		R.id.saveBracket -> {
-			bracket?.let { it ->
-				it.tournamentId?.let { tournamentId ->
-					it.bracketId?.let { bracketId ->
-						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
-							override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
-								data?.let {
-									activity.showToast(R.string.bracket_update_success)
-									//TODO: If you just call `bracket = it` here, you reset the pointer which causes the adapter data to be stale. Figure out a way to adhere to the data coming back
-								}
-							}
-						})
-					}
-				}
-			}
+			saveBracket(true)
 			true
 		}
 		else -> false
 	}
 
-	//UI Functions
+	//Custom Functions
 
 	private fun setupViewBracketUI() {
 		if (bracket != null && masterBracket != null) {
@@ -110,11 +108,40 @@ abstract class BracketFragment: Fragment() {
 
 			//If the adapter already exists, just update the viewPager (they just tapped save)
 			if (viewPager.adapter != null) {
+				//This will transitively notify each recycler view within the adapter
 				viewPager.adapter?.notifyDataSetChanged()
 			} else {
 				//Tell the view pager to keep all pages in memory (so that we can scroll between them)
 				bracket?.rounds?.let { viewPager.offscreenPageLimit = it.size - 1 }
 				viewPager.adapter = RoundPagerAdapter()
+			}
+		}
+	}
+
+	private fun saveBracket(showToast: Boolean = false) {
+		//Only save if they've actually made changes
+		if (changesMade) {
+			bracket?.let { it ->
+				it.tournamentId?.let { tournamentId ->
+					it.bracketId?.let { bracketId ->
+						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+							override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
+								data?.let {
+									changesMade = false
+									bracket = it
+
+									if (showToast) {
+										activity.showToast(R.string.bracket_update_success)
+									}
+								}
+							}
+						})
+					}
+				}
+			}
+		} else {
+			if (showToast) {
+				activity.showToast(R.string.no_changes)
 			}
 		}
 	}
@@ -131,7 +158,7 @@ abstract class BracketFragment: Fragment() {
 			val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
 			(roundView as? RecyclerView?)?.apply {
 				layoutManager = LinearLayoutManager(activity)
-				adapter = MatchAdapter(bracket?.rounds?.get(position) ?: emptyList(), masterBracket?.rounds?.get(position) ?: emptyList())
+				adapter = MatchAdapter(position)
 
 				recyclerViews[position] = this
 				scrollListeners[position] = object: RecyclerView.OnScrollListener() {
@@ -149,7 +176,17 @@ abstract class BracketFragment: Fragment() {
 			return roundView
 		}
 
-		inner class MatchAdapter(private val matches: List<Match>, private val masterMatches: List<Match>): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
+		override fun notifyDataSetChanged() {
+			super.notifyDataSetChanged()
+			recyclerViews.forEach { it?.adapter?.notifyDataSetChanged() }
+		}
+
+		inner class MatchAdapter(private val round: Int): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
+			private val matches: List<Match>
+				get() = bracket?.rounds?.get(round) ?: emptyList()
+			private val masterMatches: List<Match>
+				get() = masterBracket?.rounds?.get(round) ?: emptyList()
+
 			override fun getItemCount() = matches.size
 			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_match, parent, false))
 			override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(matches[position], masterMatches[position])
@@ -211,6 +248,7 @@ abstract class BracketFragment: Fragment() {
 				}
 
 				private fun updateWinnerAndNextRound(match: Match, winner: Player?) {
+					changesMade = true
 					match.winner = winner
 					recyclerViews.getOrNull(match.round)?.also {
 						val currentPositionIndex = match.position - 1 //Position is 1 indexed
