@@ -6,6 +6,7 @@
 
 	<application
 		android:allowBackup="true"
+		android:name=".support.MyApplication"
 		android:icon="@mipmap/bracket_challenge"
 		android:label="@string/app_name"
 		android:roundIcon="@mipmap/bracket_challenge"
