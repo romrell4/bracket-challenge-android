@@ -1,12 +1,15 @@
 package com.romrell4.bracketchallenge.controller
 
+import android.animation.ValueAnimator
 import android.app.Fragment
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.PagerAdapter
+import android.support.v4.view.ViewPager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.*
@@ -31,6 +34,8 @@ abstract class BracketFragment: Fragment() {
 		set(value) {
 			field = value
 
+			masterBracket = value
+
 			//Whenever this is set, reset changes made
 			changesMade = false
 
@@ -42,6 +47,7 @@ abstract class BracketFragment: Fragment() {
 			setupViewBracketUI()
 		}
 	private var changesMade = false
+	private var adapter: RoundPagerAdapter? = null
 
 	//Overridable values
 	protected abstract fun areCellsClickable(): Boolean
@@ -72,15 +78,15 @@ abstract class BracketFragment: Fragment() {
 
 	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
 		tournament = arguments.getParcelable(TOURNAMENT_EXTRA)
-		tournament.masterBracketId?.let {
-			Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
-				override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
-					data?.let {
-						masterBracket = it
-					}
-				}
-			})
-		}
+//		tournament.masterBracketId?.let {
+//			Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+//				override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
+//					data?.let { bracket ->
+//						masterBracket = bracket
+//					}
+//				}
+//			})
+//		}
 	}
 
 	override fun onStop() {
@@ -107,14 +113,21 @@ abstract class BracketFragment: Fragment() {
 			scoreTextView.text = getString(R.string.score_format, bracket?.score)
 
 			//If the adapter already exists, just update the viewPager (they just tapped save)
-			if (viewPager.adapter != null) {
+			if (adapter != null) {
 				//This will transitively notify each recycler view within the adapter
-				viewPager.adapter?.notifyDataSetChanged()
+				adapter?.notifyDataSetChanged()
 			} else {
 				//Tell the view pager to keep all pages in memory (so that we can scroll between them)
 				bracket?.rounds?.let { viewPager.offscreenPageLimit = it.size - 1 }
-				viewPager.adapter = RoundPagerAdapter()
+				adapter = RoundPagerAdapter()
+				viewPager.adapter = adapter
 			}
+
+			viewPager.addOnPageChangeListener(object: ViewPager.SimpleOnPageChangeListener() {
+				override fun onPageSelected(position: Int) {
+					adapter?.currentPage = position
+				}
+			})
 		}
 	}
 
@@ -147,23 +160,40 @@ abstract class BracketFragment: Fragment() {
 	}
 
 	inner class RoundPagerAdapter: PagerAdapter() {
+		var currentPage = 0
+			set(value) {
+				field = value
+				recyclerViews.forEachIndexed { index, recyclerView ->
+					(recyclerView?.adapter as? MatchAdapter)?.zoomLevel = 2.0.pow(if (currentPage == 0) index else index - currentPage + 1).toInt()
+				}
+//				pageControl.currentPage = currentPage
+//				if (value != 0) {
+//					(recyclerViews[value - 1]?.adapter as? MatchAdapter)?.spacing = 0
+//				}
+//				(recyclerViews[value]?.adapter as? MatchAdapter)?.spacing = 1
+//				if (value != recyclerViews.size - 1) {
+//					(recyclerViews[value + 1]?.adapter as? MatchAdapter)?.spacing = 2
+//				}
+			}
 		private var recyclerViews = arrayOfNulls<RecyclerView>(count)
 		private var scrollListeners = arrayOfNulls<RecyclerView.OnScrollListener>(count)
 
 		override fun getCount() = bracket?.rounds?.size ?: 0
 		override fun isViewFromObject(view: View, `object`: Any) = view == `object`
 		override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) = container.removeView(`object` as? View)
-
 		override fun instantiateItem(container: ViewGroup, position: Int): Any {
 			val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
 			(roundView as? RecyclerView?)?.apply {
 				layoutManager = LinearLayoutManager(activity)
-				adapter = MatchAdapter(position)
+				val matchAdapter = MatchAdapter(position)
+				adapter = matchAdapter
 
 				recyclerViews[position] = this
 				scrollListeners[position] = object: RecyclerView.OnScrollListener() {
 					override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
 						super.onScrolled(recyclerView, dx, dy)
+						
+						println("ScrollY: ${recyclerView?.scrollY}")
 						recyclerViews.zip(scrollListeners)
 								.filter { it.first != recyclerView }
 								.map { it.first?.removeOnScrollListener(it.second); it }
@@ -171,6 +201,12 @@ abstract class BracketFragment: Fragment() {
 								.forEach { it.first?.addOnScrollListener(it.second) }
 					}
 				}.also { addOnScrollListener(it) }
+				viewTreeObserver.addOnGlobalLayoutListener(object: ViewTreeObserver.OnGlobalLayoutListener {
+					override fun onGlobalLayout() {
+						matchAdapter.firstTime = false
+						viewTreeObserver.removeOnGlobalLayoutListener(this)
+					}
+				})
 			}
 			container.addView(roundView)
 			return roundView
@@ -181,11 +217,17 @@ abstract class BracketFragment: Fragment() {
 			recyclerViews.forEach { it?.adapter?.notifyDataSetChanged() }
 		}
 
-		inner class MatchAdapter(private val round: Int): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
+		inner class MatchAdapter(private val index: Int): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
+			var firstTime = true
+			var zoomLevel = 2.0.pow(index).toInt()
+				set(value) {
+					field = value
+					notifyDataSetChanged()
+				}
 			private val matches: List<Match>
-				get() = bracket?.rounds?.get(round) ?: emptyList()
+				get() = bracket?.rounds?.get(index) ?: emptyList()
 			private val masterMatches: List<Match>
-				get() = masterBracket?.rounds?.get(round) ?: emptyList()
+				get() = masterBracket?.rounds?.get(index) ?: emptyList()
 
 			override fun getItemCount() = matches.size
 			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_match, parent, false))
@@ -204,10 +246,22 @@ abstract class BracketFragment: Fragment() {
 					(itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.run {
 						val cardHeight = activity.resources.getDimension(R.dimen.match_card_height)
 						val cardMargin = activity.resources.getDimension(R.dimen.match_card_margin)
-						val newMargin = ((cardHeight / 2 + cardMargin) * (2.0.pow(match.round - 1) - 1) + cardMargin).toInt()
-						topMargin = newMargin
-						bottomMargin = newMargin
-						itemView.requestLayout()
+						val margin = (((cardHeight / 2 + cardMargin) * (zoomLevel - 1)) + cardMargin).toInt()
+
+						if (firstTime) {
+							topMargin = margin
+							bottomMargin = margin
+						} else {
+							val animator = ValueAnimator.ofInt(topMargin, margin)
+							animator.addUpdateListener {
+								topMargin = it.animatedValue as Int
+								bottomMargin = it.animatedValue as Int
+								itemView.requestLayout()
+							}
+							animator.interpolator = LinearInterpolator()
+							animator.duration = 500
+							animator.start()
+						}
 					}
 
 					//Set up the text and checks

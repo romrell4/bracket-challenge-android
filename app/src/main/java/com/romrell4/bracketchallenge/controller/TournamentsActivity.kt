@@ -130,18 +130,20 @@ class TournamentsActivity: AppCompatActivity() {
 	}
 
 	private fun loadData() {
-		swipeRefreshLayout.isRefreshing = true
+		adapter.tournaments = listOf(Tournament(0, "Test", 0, null, null, Date(), Date()))
+		adapter.notifyDataSetChanged()
+//		swipeRefreshLayout.isRefreshing = true
 
-		//Make the HTTP call to load tournaments (using the access token as a header)
-		api.getTournaments().enqueue(object: Client.SimpleCallback<List<Tournament>>(this) {
-			override fun onResponse(data: List<Tournament>?, errorResponse: Response<List<Tournament>>?) {
-				swipeRefreshLayout.isRefreshing = false
-				data?.let {
-					adapter.tournaments = it
-					adapter.notifyDataSetChanged()
-				}
-			}
-		})
+//		//Make the HTTP call to load tournaments (using the access token as a header)
+//		api.getTournaments().enqueue(object: Client.SimpleCallback<List<Tournament>>(this) {
+//			override fun onResponse(data: List<Tournament>?, errorResponse: Response<List<Tournament>>?) {
+//				swipeRefreshLayout.isRefreshing = false
+//				data?.let {
+//					adapter.tournaments = it
+//					adapter.notifyDataSetChanged()
+//				}
+//			}
+//		})
 	}
 
 	inner class TournamentAdapter(var tournaments: List<Tournament> = emptyList()): RecyclerView.Adapter<TournamentAdapter.TournamentViewHolder>() {
