@@ -18,7 +18,7 @@ class TournamentTabActivity: AppCompatActivity() {
 
 		val tournament = intent.getParcelableExtra<Tournament>(TOURNAMENT_EXTRA)
 		fragmentManager.beginTransaction().replace(R.id.frameLayout, MyBracketFragment.newInstance(tournament)).commit()
-		println(tournament)
+		title = tournament.name
 
 		navView.setOnNavigationItemSelectedListener {
 			fragmentManager.beginTransaction()
