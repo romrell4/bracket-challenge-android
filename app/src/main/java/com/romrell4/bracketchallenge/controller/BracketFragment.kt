@@ -185,6 +185,7 @@ abstract class BracketFragment: Fragment() {
 			val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
 			(roundView as? RecyclerView?)?.apply {
 				layoutManager = LinearLayoutManager(activity)
+				isVerticalScrollBarEnabled = false
 				val matchAdapter = MatchAdapter(position)
 				adapter = matchAdapter
 
@@ -215,6 +216,10 @@ abstract class BracketFragment: Fragment() {
 		override fun notifyDataSetChanged() {
 			super.notifyDataSetChanged()
 			recyclerViews.forEach { it?.adapter?.notifyDataSetChanged() }
+		}
+
+		override fun getPageWidth(position: Int): Float {
+			return 0.8f
 		}
 
 		inner class MatchAdapter(private val index: Int): RecyclerView.Adapter<MatchAdapter.ViewHolder>() {
