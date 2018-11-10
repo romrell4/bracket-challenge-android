@@ -162,13 +162,13 @@ abstract class BracketFragment: Fragment() {
 
 				recyclerViews[position] = this
 				scrollListeners[position] = object: RecyclerView.OnScrollListener() {
-					override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
+					override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 						super.onScrolled(recyclerView, dx, dy)
 						recyclerViews.zip(scrollListeners)
 								.filter { it.first != recyclerView }
-								.map { it.first?.removeOnScrollListener(it.second); it }
+								.map { pair -> pair.second?.let { pair.first?.removeOnScrollListener(it) }; pair }
 								.map { it.first?.scrollBy(dx, dy); it }
-								.forEach { it.first?.addOnScrollListener(it.second) }
+								.forEach { pair -> pair.second?.let { pair.first?.addOnScrollListener(it) } }
 					}
 				}.also { addOnScrollListener(it) }
 			}
@@ -259,7 +259,7 @@ abstract class BracketFragment: Fragment() {
 						} else {
 							nextMatch?.player2 = winner
 						}
-						it.adapter.notifyItemChanged(nextPositionIndex)
+						it.adapter?.notifyItemChanged(nextPositionIndex)
 					}
 				}
 			}
