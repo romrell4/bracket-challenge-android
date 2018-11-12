@@ -8,8 +8,8 @@ android {
         applicationId "com.romrell4.bracketchallenge"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 8
-        versionName "1.5"
+        versionCode 9
+        versionName "1.6"
     }
     buildTypes {
         release {
