@@ -159,7 +159,7 @@ class TournamentsActivity: AppCompatActivity() {
 
 			fun bind(tournament: Tournament) {
 				if (!tournament.imageUrl.isNullOrEmpty()) {
-					Picasso.with(this@TournamentsActivity)
+					Picasso.get()
 							.load(tournament.imageUrl)
 							.placeholder(android.R.color.darker_gray)
 							.into(imageView)
