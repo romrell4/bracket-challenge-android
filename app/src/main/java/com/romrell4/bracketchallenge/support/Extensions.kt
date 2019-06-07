@@ -3,10 +3,11 @@ package com.romrell4.bracketchallenge.support
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Parcel
-import android.support.annotation.StringRes
+import androidx.annotation.StringRes
 import android.view.View
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
+import androidx.fragment.app.Fragment
 import java.util.*
 
 /**
@@ -25,6 +26,16 @@ fun Context.showToast(message: String, length: Int = LENGTH_SHORT) {
 
 fun Context.showToast(@StringRes resId: Int, length: Int = LENGTH_SHORT) {
 	Toast.makeText(this, resId, length).show()
+}
+
+fun Fragment.showLoadingDialog() = requireContext().showLoadingDialog()
+
+fun Fragment.showToast(message: String, length: Int = LENGTH_SHORT) {
+	requireContext().showToast(message, length)
+}
+
+fun Fragment.showToast(@StringRes resId: Int, length: Int = LENGTH_SHORT) {
+	requireContext().showToast(resId, length)
 }
 
 fun Parcel.readDate(): Date? {

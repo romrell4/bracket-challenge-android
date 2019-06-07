@@ -37,7 +37,7 @@ class MyBracketFragment: UserBracketFragment() {
 
 	//Lifecycle
 
-	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 
 		loadBracket()
@@ -57,7 +57,7 @@ class MyBracketFragment: UserBracketFragment() {
 			}
 
 			override fun onFailure(call: Call<Bracket>?, t: Throwable?) {
-				activity.showToast(activity.getString(R.string.error_message, t?.message), Toast.LENGTH_LONG)
+				showToast(getString(R.string.error_message, t?.message), Toast.LENGTH_LONG)
 			}
 		})
 	}
@@ -67,8 +67,8 @@ class MyBracketFragment: UserBracketFragment() {
 
 		if (areCellsClickable()) {
 			createBracketButton.setOnClickListener {
-				val dialog = activity.showLoadingDialog()
-				Client.createApi().createBracket(tournament.tournamentId, Bracket(name = Identity.user.name)).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+				val dialog = showLoadingDialog()
+				Client.createApi().createBracket(tournament.tournamentId, Bracket(name = Identity.user.name)).enqueue(object: Client.SimpleCallback<Bracket>(requireActivity()) {
 					override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
 						dialog.dismiss()
 

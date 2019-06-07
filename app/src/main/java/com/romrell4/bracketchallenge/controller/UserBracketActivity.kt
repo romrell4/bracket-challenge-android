@@ -1,6 +1,6 @@
 package com.romrell4.bracketchallenge.controller
 
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.Bracket
@@ -21,7 +21,7 @@ class UserBracketActivity: AppCompatActivity() {
 
 		title = bracket.name
 
-		fragmentManager.beginTransaction()
+		supportFragmentManager.beginTransaction()
 				.replace(R.id.frameLayout, UserBracketFragment.newInstance(tournament, bracket))
 				.commit()
 	}

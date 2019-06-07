@@ -1,19 +1,18 @@
 package com.romrell4.bracketchallenge.controller
 
-import android.app.Fragment
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.Bracket
 import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
-import kotlinx.android.synthetic.main.fragment_standings.*
 import kotlinx.android.synthetic.main.fragment_standings.view.*
 import kotlinx.android.synthetic.main.row_user_score.view.*
 import retrofit2.Response
@@ -38,8 +37,8 @@ class StandingsFragment: Fragment() {
 	private val adapter = BracketAdapter()
 	private lateinit var refreshControl: SwipeRefreshLayout
 
-	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-		val view = inflater?.inflate(R.layout.fragment_standings, container, false)
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+		val view = inflater.inflate(R.layout.fragment_standings, container, false)
 
 		view?.run {
 			recyclerView.let {
@@ -47,7 +46,7 @@ class StandingsFragment: Fragment() {
 				it.adapter = adapter
 			}
 
-			tournament = arguments.getParcelable(TOURNAMENT_EXTRA)
+			tournament = arguments?.getParcelable(TOURNAMENT_EXTRA) ?: throw IllegalStateException()
 			refreshControl = swipeRefreshLayout.also { it.setOnRefreshListener { loadData() } }
 			loadData()
 		}
@@ -57,7 +56,7 @@ class StandingsFragment: Fragment() {
 
 	private fun loadData() {
 		refreshControl.isRefreshing = true
-		Client.createApi().getBrackets(tournament.tournamentId).enqueue(object: Client.SimpleCallback<List<Bracket>>(activity) {
+		Client.createApi().getBrackets(tournament.tournamentId).enqueue(object: Client.SimpleCallback<List<Bracket>>(requireActivity()) {
 			override fun onResponse(data: List<Bracket>?, errorResponse: Response<List<Bracket>>?) {
 				refreshControl.isRefreshing = false
 				data?.let {
@@ -70,7 +69,7 @@ class StandingsFragment: Fragment() {
 
 	inner class BracketAdapter(var brackets: List<Bracket> = emptyList()): RecyclerView.Adapter<BracketAdapter.ViewHolder>() {
 		override fun getItemCount() = brackets.size
-		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_user_score, parent, false))
+		override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(layoutInflater.inflate(R.layout.row_user_score, parent, false))
 		override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(brackets[position])
 
 		inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {

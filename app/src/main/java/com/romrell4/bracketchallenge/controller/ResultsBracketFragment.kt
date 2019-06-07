@@ -24,14 +24,14 @@ class ResultsBracketFragment: BracketFragment() {
 	override fun areCellsClickable() = Identity.user.admin
 	override val cellNotClickableReason: String = "Only admins can update the results bracket"
 
-	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		loadBracket()
 	}
 
 	private fun loadBracket() {
 		tournament.masterBracketId?.let {
-			Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+			Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(requireActivity()) {
 				override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
 					bracket = data
 				}

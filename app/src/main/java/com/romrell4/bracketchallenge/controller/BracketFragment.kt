@@ -1,13 +1,13 @@
 package com.romrell4.bracketchallenge.controller
 
-import android.app.Fragment
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.PagerAdapter
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.PagerAdapter
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.*
 import com.romrell4.bracketchallenge.support.showToast
@@ -47,7 +47,7 @@ abstract class BracketFragment: Fragment() {
 	protected abstract fun areCellsClickable(): Boolean
 
 	protected abstract val cellNotClickableReason: String
-	protected open fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(activity, R.color.black)
+	protected open fun getTextColor(playerId: Int?, predictionId: Int?, winnerId: Int?) = ContextCompat.getColor(requireActivity(), R.color.black)
 
 	//Setup functions
 	protected fun setArguments(tournament: Tournament) {
@@ -68,12 +68,12 @@ abstract class BracketFragment: Fragment() {
 		super.onCreateOptionsMenu(menu, inflater)
 	}
 
-	override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?) = inflater?.inflate(R.layout.fragment_bracket, container, false)
+	override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = inflater.inflate(R.layout.fragment_bracket, container, false)
 
-	override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-		tournament = arguments.getParcelable(TOURNAMENT_EXTRA)
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		tournament = arguments?.getParcelable(TOURNAMENT_EXTRA) ?: throw IllegalStateException()
 		tournament.masterBracketId?.let {
-			Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+			Client.createApi().getBracket(tournament.tournamentId, it).enqueue(object: Client.SimpleCallback<Bracket>(requireActivity()) {
 				override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
 					data?.let {
 						masterBracket = it
@@ -124,14 +124,14 @@ abstract class BracketFragment: Fragment() {
 			bracket?.let { it ->
 				it.tournamentId?.let { tournamentId ->
 					it.bracketId?.let { bracketId ->
-						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(activity) {
+						Client.createApi().updateBracket(tournamentId, bracketId, it).enqueue(object: Client.SimpleCallback<Bracket>(requireActivity()) {
 							override fun onResponse(data: Bracket?, errorResponse: Response<Bracket>?) {
 								data?.let {
 									changesMade = false
 									bracket = it
 
 									if (showToast) {
-										activity.showToast(R.string.bracket_update_success)
+										showToast(R.string.bracket_update_success)
 									}
 								}
 							}
@@ -141,7 +141,7 @@ abstract class BracketFragment: Fragment() {
 			}
 		} else {
 			if (showToast) {
-				activity.showToast(R.string.no_changes)
+				showToast(R.string.no_changes)
 			}
 		}
 	}
@@ -155,8 +155,8 @@ abstract class BracketFragment: Fragment() {
 		override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) = container.removeView(`object` as? View)
 
 		override fun instantiateItem(container: ViewGroup, position: Int): Any {
-			val roundView = activity.layoutInflater.inflate(R.layout.view_round, container, false)
-			(roundView as? RecyclerView?)?.apply {
+			val roundView = layoutInflater.inflate(R.layout.view_round, container, false)
+			(roundView as? RecyclerView)?.apply {
 				layoutManager = LinearLayoutManager(activity)
 				adapter = MatchAdapter(position)
 
@@ -188,7 +188,7 @@ abstract class BracketFragment: Fragment() {
 				get() = masterBracket?.rounds?.get(round) ?: emptyList()
 
 			override fun getItemCount() = matches.size
-			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(activity.layoutInflater.inflate(R.layout.row_match, parent, false))
+			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(layoutInflater.inflate(R.layout.row_match, parent, false))
 			override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(matches[position], masterMatches[position])
 
 			inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
@@ -202,8 +202,8 @@ abstract class BracketFragment: Fragment() {
 				fun bind(match: Match, masterMatch: Match) {
 					//Calculate the correct margin around the cell
 					(itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.run {
-						val cardHeight = activity.resources.getDimension(R.dimen.match_card_height)
-						val cardMargin = activity.resources.getDimension(R.dimen.match_card_margin)
+						val cardHeight = resources.getDimension(R.dimen.match_card_height)
+						val cardMargin = resources.getDimension(R.dimen.match_card_margin)
 						val newMargin = ((cardHeight / 2 + cardMargin) * (2.0.pow(match.round - 1) - 1) + cardMargin).toInt()
 						topMargin = newMargin
 						bottomMargin = newMargin
@@ -235,7 +235,7 @@ abstract class BracketFragment: Fragment() {
 								bind(match, masterMatch)
 							}
 						} else {
-							activity.showToast(cellNotClickableReason, Toast.LENGTH_SHORT)
+							showToast(cellNotClickableReason, Toast.LENGTH_SHORT)
 						}
 					}
 
