@@ -95,6 +95,7 @@ class TournamentsActivity: AppCompatActivity() {
 					.setIsSmartLockEnabled(!BuildConfig.DEBUG)
 					.setAvailableProviders(listOf(
 							AuthUI.IdpConfig.GoogleBuilder(),
+							AuthUI.IdpConfig.FacebookBuilder(),
 							AuthUI.IdpConfig.EmailBuilder()
 					).map { it.build() })
 					.build())
