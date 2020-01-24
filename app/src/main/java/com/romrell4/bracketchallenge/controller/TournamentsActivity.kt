@@ -13,7 +13,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.firebase.ui.auth.AuthUI
-import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.romrell4.bracketchallenge.BuildConfig
@@ -43,6 +42,8 @@ class TournamentsActivity: AppCompatActivity() {
 		setContentView(R.layout.activity_tournaments)
 
 		FirebaseApp.initializeApp(this)
+
+		Identity.load(this)
 
 		FirebaseAuth.getInstance().addAuthStateListener {
 			if (it.currentUser != null) {
