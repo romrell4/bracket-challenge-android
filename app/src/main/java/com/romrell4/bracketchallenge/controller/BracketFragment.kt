@@ -61,9 +61,9 @@ abstract class BracketFragment: Fragment() {
 		setHasOptionsMenu(true)
 	}
 
-	override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+	override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
 		if (areCellsClickable()) {
-			inflater?.inflate(R.menu.save_tournament, menu)
+			inflater.inflate(R.menu.save_tournament, menu)
 		}
 		super.onCreateOptionsMenu(menu, inflater)
 	}
@@ -89,7 +89,7 @@ abstract class BracketFragment: Fragment() {
 		saveBracket()
 	}
 
-	override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
+	override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
 		R.id.saveBracket -> {
 			saveBracket(true)
 			true

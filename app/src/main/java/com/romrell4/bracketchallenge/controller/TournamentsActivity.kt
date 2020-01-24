@@ -12,12 +12,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import com.facebook.AccessToken
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
+import com.firebase.ui.auth.AuthUI
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.romrell4.bracketchallenge.BuildConfig
 import com.romrell4.bracketchallenge.R
 import com.romrell4.bracketchallenge.model.Client
 import com.romrell4.bracketchallenge.model.Tournament
@@ -31,23 +29,38 @@ import retrofit2.Response
 import java.text.SimpleDateFormat
 import java.util.*
 
-class TournamentsActivity: AppCompatActivity() {
-	companion object {
-		private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
-		private const val LOGIN_VIEW_INDEX = 0
-		private const val TOURNAMENTS_VIEW_INDEX = 1
-	}
+private val DATE_FORMATTER = SimpleDateFormat("MMM d", Locale.US)
 
+class TournamentsActivity: AppCompatActivity() {
 	//TODO: Difference between qualifiers and bye
 
-	private val callbackManager = CallbackManager.Factory.create()
 	private val adapter = TournamentAdapter()
-	private val loggedIn get() = AccessToken.getCurrentAccessToken() != null && Identity.load(this) != null
 	private val api = Client.createApi()
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(R.layout.activity_tournaments)
+
+		FirebaseApp.initializeApp(this)
+
+		Identity.load(this)
+
+		FirebaseAuth.getInstance().addAuthStateListener {
+			if (it.currentUser != null) {
+				val alert = showLoadingDialog()
+				api.login().enqueue(object: Client.SimpleCallback<User>(this@TournamentsActivity) {
+					override fun onResponse(data: User?, errorResponse: Response<User>?) {
+						alert.dismiss()
+						data?.let { user ->
+							Identity.saveUser(this@TournamentsActivity, user)
+							checkLoginStatus()
+						}
+					}
+				})
+			} else {
+				checkLoginStatus()
+			}
+		}
 
 		recyclerView.layoutManager = LinearLayoutManager(this)
 		recyclerView.adapter = adapter
@@ -58,69 +71,36 @@ class TournamentsActivity: AppCompatActivity() {
 		}
 	}
 
-	override fun onStart() {
-		super.onStart()
-
-		checkLoginStatus()
-	}
-
 	override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-		if (loggedIn) {
+		if (FirebaseAuth.getInstance().currentUser != null) {
 			menuInflater.inflate(R.menu.menu_tournaments, menu)
-//			menu?.findItem(R.id.addTournament)?.isVisible = Identity.user.admin
 		}
 		return true
 	}
 
 	override fun onOptionsItemSelected(item: MenuItem?) = when (item?.itemId) {
 		R.id.logout -> {
-			LoginManager.getInstance().logOut()
-			checkLoginStatus()
+			AuthUI.getInstance().signOut(this)
 			true
 		}
-//		R.id.addTournament -> {
-//			AddTournamentDialog(this).show()
-//			true
-//		}
 		else -> super.onOptionsItemSelected(item)
 	}
 
-	override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-		super.onActivityResult(requestCode, resultCode, data)
-		callbackManager?.onActivityResult(requestCode, resultCode, data)
-	}
-
 	private fun checkLoginStatus() {
-		if (!loggedIn) {
+		if (FirebaseAuth.getInstance().currentUser == null) {
 			//Clear the adapter
 			adapter.tournaments = emptyList()
 
-			viewSwitcher.displayedChild = LOGIN_VIEW_INDEX
-
-			supportActionBar?.subtitle = "Not logged in"
-
-			loginButton.setReadPermissions("email")
-			loginButton.registerCallback(callbackManager, object: FacebookCallback<LoginResult> {
-				override fun onSuccess(result: LoginResult?) {
-					println("Access token: ${AccessToken.getCurrentAccessToken()}")
-
-					val alert = showLoadingDialog()
-					api.login().enqueue(object: Client.SimpleCallback<User>(this@TournamentsActivity) {
-						override fun onResponse(data: User?, errorResponse: Response<User>?) {
-							alert.dismiss()
-							data?.let {
-								Identity.saveUser(this@TournamentsActivity, it)
-								checkLoginStatus()
-							}
-						}
-					})
-				}
-
-				override fun onCancel() = showToast(R.string.login_failed_message)
-				override fun onError(error: FacebookException?) = showToast(R.string.login_failed_message)
-			})
+			startActivity(AuthUI.getInstance().createSignInIntentBuilder()
+					.setLogo(R.drawable.app_icon)
+					.setIsSmartLockEnabled(!BuildConfig.DEBUG)
+					.setAvailableProviders(listOf(
+							AuthUI.IdpConfig.GoogleBuilder(),
+							AuthUI.IdpConfig.FacebookBuilder(),
+							AuthUI.IdpConfig.EmailBuilder()
+					).map { it.build() })
+					.build())
 		} else if (adapter.tournaments.isEmpty()) { //Only reload the data if we haven't loaded already
-			viewSwitcher.displayedChild = TOURNAMENTS_VIEW_INDEX
 			supportActionBar?.subtitle = "Logged in as ${Identity.user.name}"
 			loadData()
 		}

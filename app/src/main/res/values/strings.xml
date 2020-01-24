@@ -1,6 +1,6 @@
 <resources>
 	<!--Log in strings-->
-	<string name="facebook_app_id">335497663573278</string>
+	<string name="facebook_application_id" translatable="false">335497663573278</string>
 	<string name="fb_login_protocol_scheme">fb335497663573278</string>
 
 	<string name="app_name">Bracket Challenge</string>
