@@ -2,7 +2,8 @@ package com.romrell4.bracketchallenge.model
 
 import android.content.Context
 import android.widget.Toast
-import com.facebook.AccessToken
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
@@ -37,7 +38,19 @@ class Client {
 					.client(OkHttpClient.Builder()
 							.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
 							.addInterceptor { chain ->
-								chain.proceed(chain.request().newBuilder().addHeader("Token", AccessToken.getCurrentAccessToken().token).build())
+								val requestBuilder = chain.request().newBuilder()
+
+								//If the user is logged in, attach a token to the request
+								FirebaseAuth.getInstance().currentUser?.let { user ->
+									Tasks.await(user.getIdToken(true)).token?.let {
+										//This line will allow you to view and copy the token, for debug purposes
+										println(it)
+										chain.proceed(requestBuilder.addHeader("X-Firebase-Token", it).build())
+									} ?: throw Exception("Unable to retrieve token")
+								} ?: run {
+									//If the user isn't logged in, let them call the public endpoints
+									chain.proceed(requestBuilder.build())
+								}
 							}
 							.build())
 					.build()
